@@ -6,7 +6,9 @@
   "author": "Larry Davis <lazdnet@gmail.com>",
   "license": "BSD",
   "dependencies": {
+    "connect": "^2.14.5",
     "keypress": "^0.2.1",
-    "serialport": "^1.4.0"
+    "serialport": "^1.4.0",
+    "socket.io": "^0.9.16"
   }
 }

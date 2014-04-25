@@ -3,8 +3,21 @@
 	-webkit-transition: top 0.25s, left 0.25s;
 }
 
-body {
+html, body {
 	overflow: hidden; /* Stop bouncing in Chrome */
+}
+
+body {
+	/* Prevent iPad from screwing up screen dimensions */
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: 0;
+	padding: 0;
+
+	background: black;
 }
 
 .b-Feed {
@@ -35,7 +48,7 @@ body {
 
 	border: 1px solid black;
 	border-radius: 1em;
-	background: rgba(0, 0, 0, 0.5);
+	background: rgba(100, 100, 100, 0.5);
 
 	cursor: move;
 }
@@ -64,14 +77,27 @@ body {
 
 .b-Hud {
 	position: absolute;
-	top: 0;
-	left: 0;
+	bottom: 0;
 	right: 0;
 
 	font-family: monospace;
 
-	text-align: center;
+	text-align: right;
 }
 
 .b-Hud-item {
+	color: rgba(255, 255, 255, 0.85);
+}
+
+.b-Log {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 50%;
+	max-height: 100%;
+
+	font-family: monospace;
+	color: rgba(255, 255, 255, 0.85);
+
+	overflow: auto;
 }

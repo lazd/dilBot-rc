@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf8">
+		<!-- Ensure correct presentation on iOS -->
+		<meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0">
+
+		<!-- Enable save to homescreen -->
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+		<!-- Custom title -->
+		<meta name="apple-mobile-web-app-title" content="Rover">
+
+		<title>Rover</title>
+		<link rel="stylesheet" type="text/css" href="./styles.css">
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="b.js"></script>
+	</head>
+
+	<body>
+		<div class="b-Joystick js-joystick">
+			<div class="b-Joystick-knob js-knob"></div>
+		</div>
+
+		<div class="b-Feed"></div>
+
+		<div class="b-Log js-log"></div>
+
+		<div class="b-Hud">
+			<div class="b-Hud-item">Throttle: <span class="b-Hud-value js-throttleHUD"></span></div>
+			<div class="b-Hud-item">Battery: <span class="b-Hud-value js-batteryHUD"></span></div>
+		</div>
+	</body>
+</html>

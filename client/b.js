@@ -1,92 +1,152 @@
-var b = {
-  els: {},
+var b;
 
-  config: {
-    joyCenter: 1500,
-    joyWidth: null
-  },
+(function() {
+  var REVERSE = 0;
+  var BRAKING = 1;
+  var FORWARD = 2;
 
-  init: function() {
-    b.els.throttleHUD = document.querySelector('.js-throttleHUD');
-    b.els.steeringHUD = document.querySelector('.js-steeringHUD');
-    b.els.joystick = document.querySelector('.js-joystick');
-    b.els.knob = document.querySelector('.js-knob');
+  b = {
+    els: {},
 
-    // document.body.addEventListener('touchmove', b.stopEvent, false);
-    b.els.joystick.addEventListener('touchmove', b.handleJoystickMove, false);
-    b.els.joystick.addEventListener('touchend', b.centerSticks, false);
+    config: {
+      joyCenter: 1500,
+      joyWidth: null,
+      logAutoScroll: true
+    },
 
-    b.config.joyWidth = b.els.joystick.offsetWidth
-    b.config.throttle = b.config.joyCenter;
-    b.config.steering = b.config.joyCenter;
+    state: null,
 
-    b.setHUD();
-  },
+    init: function() {
+      // Connect to socket
+      var socket = b.socket = io.connect();
 
-  stopEvent: function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-  },
+      socket.on('hello', function() {
+        b.log('Connection established');
+      });
 
-  adjustContinuum: function(percentage) {
-    percentage = Math.min(Math.max(percentage, 0), 1000);
+      socket.on('log', function(str) {
+        b.log(str);
+      });
 
-    // Fit in 1000
-    percentage = percentage * 1000;
+      socket.on('state', function(state) {
+        b.setHUD(state);
+      });
 
-    // With a minimum of 1000
-    percentage += 1000;
+      // Get elements
+      b.els.throttleHUD = document.querySelector('.js-throttleHUD');
+      b.els.batteryHUD = document.querySelector('.js-batteryHUD');
+      b.els.joystick = document.querySelector('.js-joystick');
+      b.els.knob = document.querySelector('.js-knob');
+      b.els.log = document.querySelector('.js-log');
 
-    return Math.floor(percentage);
-  },
+      // Stop bouncing
+      document.body.addEventListener('touchmove', b.stopEvent, false);
 
-  setHUD: function() {
-    b.els.throttleHUD.textContent = b.config.throttle;
-    b.els.steeringHUD.textContent = b.config.steering;
-  },
+      // Be joystick-like
+      b.els.joystick.addEventListener('touchstart', b.handleJoystickMove, false);
+      b.els.joystick.addEventListener('touchmove', b.handleJoystickMove, false);
+      b.els.joystick.addEventListener('touchend', b.stop, false);
 
-  sendState: function(state) {
-    b.config.throttle = state.throttle;
-    b.config.steering = state.steering;
-  },
+      b.config.joyWidth = b.els.joystick.offsetWidth
+      b.config.throttle = b.config.joyCenter;
+      b.config.steering = b.config.joyCenter;
+    },
 
-  handleJoystickMove: function(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
+    log: function(str) {
+      var div = document.createElement('div');
+      div.className = 'b-Log-entry';
+      div.textContent = str;
+      b.els.log.appendChild(div);
 
-    var touch = evt.touches[0];
+      // Scroll to bottom
+      if (b.config.logAutoScroll) {
+        b.els.log.scrollTop = b.els.log.scrollHeight;
+      }
+    },
 
-    var x = Math.min(b.config.joyWidth, Math.max(0, touch.clientX - b.els.joystick.offsetLeft));
-    var y = Math.min(b.config.joyWidth, Math.max(0, touch.clientY - b.els.joystick.offsetTop));
+    stopEvent: function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+    },
 
-    var steering = x;
-    var throttle = b.config.joyWidth - y; // Invert
+    adjustContinuum: function(percentage) {
+      percentage = Math.min(Math.max(percentage, 0), 1000);
 
-    steering = b.adjustContinuum(steering / b.config.joyWidth);
-    throttle = b.adjustContinuum(throttle / b.config.joyWidth);
+      // Fit in 1000
+      percentage = percentage * 1000;
 
-    b.els.knob.classList.remove('b-transitionPosition');
-    b.els.knob.style.left = x+'px';
-    b.els.knob.style.top = y+'px';
+      // With a minimum of 1000
+      percentage += 1000;
 
-    b.sendState({
-      throttle: throttle,
-      steering: steering
-    });
-    b.setHUD();
-  },
+      return Math.floor(percentage);
+    },
 
-  centerSticks: function() {
-    b.els.knob.classList.add('b-transitionPosition');
-    b.els.knob.style.left = '50%';
-    b.els.knob.style.top = '50%';
+    getThrottleValue: function(pwm, mode) {
+      if (mode === FORWARD) {
+        return pwm;
+      }
+      else if (mode === REVERSE) {
+        return pwm * -1;
+      }
+      else {
+        // Braking
+        return 0;
+      }
+    },
 
-    b.sendState({
-      throttle: b.config.joyCenter,
-      steering: b.config.joyCenter
-    });
-    b.setHUD();
-  }
-};
+    setHUD: function(state) {
+      b.state = state;
+      b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
+      b.els.batteryHUD.textContent = (state.battery/65) +'v, ' + state.isCharged ? 'charged' : 'charging';
+    },
 
-window.onload = b.init;
+    handleJoystickMove: function(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+
+      var touch = evt.touches[0];
+
+      var x = Math.min(b.config.joyWidth, Math.max(0, touch.clientX - b.els.joystick.offsetLeft));
+      var y = Math.min(b.config.joyWidth, Math.max(0, touch.clientY - b.els.joystick.offsetTop));
+
+      var steering = x;
+      var throttle = b.config.joyWidth - y; // Invert, up is full throttle
+      // var throttle = y;
+
+      steering = b.adjustContinuum(steering / b.config.joyWidth);
+      throttle = b.adjustContinuum(throttle / b.config.joyWidth);
+
+      b.els.knob.classList.remove('b-transitionPosition');
+      b.els.knob.style.left = x+'px';
+      b.els.knob.style.top = y+'px';
+
+      b.sendState({
+        throttle: throttle,
+        steering: steering
+      });
+    },
+
+    sendState: function(state) {
+      b.config.throttle = state.throttle;
+      b.config.steering = state.steering;
+
+      b.socket.emit('command', {
+        command: 'setState',
+        data: state
+      });
+    },
+
+    stop: function() {
+      b.els.knob.classList.add('b-transitionPosition');
+      b.els.knob.style.left = '50%';
+      b.els.knob.style.top = '50%';
+
+      b.sendState({
+        throttle: b.config.joyCenter,
+        steering: b.config.joyCenter
+      });
+    }
+  };
+
+  window.onload = b.init;
+}());
