@@ -1,0 +1,12 @@
+{
+  "name": "dilbot-test",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "Larry Davis <lazdnet@gmail.com>",
+  "license": "BSD",
+  "dependencies": {
+    "keypress": "^0.2.1",
+    "serialport": "^1.4.0"
+  }
+}
