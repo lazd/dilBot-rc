@@ -1,0 +1,77 @@
+.b-transitionPosition {
+	transition: top 0.25s, left 0.25s;
+	-webkit-transition: top 0.25s, left 0.25s;
+}
+
+body {
+	overflow: hidden; /* Stop bouncing in Chrome */
+}
+
+.b-Feed {
+	background: url('bk.jpg');
+	background-size: auto 100%	;
+	background-position: center center;
+	background-repeat: no-repeat;
+
+	z-index: 0;
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.b-Joystick {
+	margin: auto;
+	font-size: 200px;
+
+	z-index: 1;
+	position: absolute;
+	bottom: 0.125em;
+	right: 0.125em;
+
+	width: 1em;
+	height: 1em;
+
+	border: 1px solid black;
+	border-radius: 1em;
+	background: rgba(0, 0, 0, 0.5);
+
+	cursor: move;
+}
+
+.b-Joystick-knob {
+	font-size: 0.25em;
+
+	position: absolute;
+	top: 50%;
+	left: 50%;
+
+	margin-left: -0.5em;
+	margin-top: -0.5em;
+
+	width: 1em;
+	height: 1em;
+
+	border: 1px solid black;
+	border-radius: 1em;
+
+	background: rgba(255, 255, 255, 0.5);
+
+	/* Avoid iOS selections */
+	pointer-events: none;
+}
+
+.b-Hud {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+
+	font-family: monospace;
+
+	text-align: center;
+}
+
+.b-Hud-item {
+}

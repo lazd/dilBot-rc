@@ -2,16 +2,6 @@ var serialport = require('serialport');
 var SerialPort = serialport.SerialPort;
 var keypress = require('keypress');
 
-keypress(process.stdin);
-process.stdin.setRawMode(true);
-process.stdin.resume();
-
-// Create SerialPort instance
-var sp = new SerialPort('/dev/cu.usbserial-A500SZXI', {
-  baudrate: 115200,
-  parser: serialport.parsers.readline('\n')
-});
-
 function zeroPad(num, places) {
   places = places || 2;
   var str = num+'';
@@ -38,8 +28,6 @@ function sendCommand(command) {
 function sendState() {
   var state = processStick(speed, steer);
 
-  console.log('State', state);
-
   // HB followed by 4 bytes of data sets the mode (0-2) and power (0-255) of each “H” bridge.
   var command = new Buffer(6);
   command.write('HB');
@@ -61,22 +49,30 @@ const REVERSE = 0;
 
 var speed = STICKCENTER;
 var steer = STICKCENTER;
-var increment = 25;
+var increment = 50;
+
+// Create SerialPort instance
+var sp = new SerialPort('/dev/cu.usbserial-A500SZXI', {
+  baudrate: 115200,
+  parser: serialport.parsers.readline('\n')
+});
 
 sp.on('open', function () {
-  console.log('Serial port opened');
-
   sp.on('data', function(data) {
     log(data);
   });
 
+  // Catch keypresses
+  keypress(process.stdin);
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
   process.stdin.on('keypress', function(chunk, key) {
     if (!key) return;
 
     if (key.name === 'escape') {
-      speed = 0;
-      steer = 0;
-      sendState();
+      speed = STICKCENTER
+      steer = STICKCENTER
+      sendCommand('ST');
     }
     else if (key.name === 'up') {
       if (speed < MAX) {
@@ -168,11 +164,3 @@ function processStick(speed, steer) {
     }
   };
 }
-
-
-console.log('center:', processStick(1500, 1500));
-console.log('full forward:', processStick(2000, 1500));
-console.log('full backward:', processStick(1000, 1500));
-console.log('full right:', processStick(1500, 2000));
-console.log('full left:', processStick(1500, 1000));
-
