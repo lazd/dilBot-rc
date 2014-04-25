@@ -4,7 +4,7 @@ var cameraServer = require('./cameraServer')({ port: 3001 });
 var uiServer = require('./uiServer')({ port: 3000 });
 var socketServer = require('./socketServer')(uiServer);
 
-var controller = new Controller('/dev/cu.usbserial-A500SZXI');
+var controller = new Controller(process.argv[2] || '/dev/cu.usbserial-A500SZXI');
 
 controller.on('connected', function() {
   socketServer.io.sockets.emit('hello', {});
