@@ -86,16 +86,18 @@ var b;
       var newImage = new Image();
       newImage.src = 'data:image/png;base64,' + image;
 
-      // Scale to fit canvas
-      var height = b.canvasHeight;
-      var scale = height / newImage.height;
-      var width = newImage.width * scale;
+      newImage.onload = function() {
+        // Scale to fit canvas
+        var height = b.canvasHeight;
+        var scale = height / newImage.height;
+        var width = newImage.width * scale;
 
-      // Center the image
-      var x = (b.canvasWidth - width) / 2;
+        // Center the image
+        var x = (b.canvasWidth - width) / 2;
 
-      // Draw the image
-      b.feedCtx.drawImage(newImage, x, 0, width, height);
+        // Draw the image
+        b.feedCtx.drawImage(newImage, x, 0, width, height);
+      };
 
       // Store the last draw time
       var time = new Date().getTime();
