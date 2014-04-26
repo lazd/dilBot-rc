@@ -2,16 +2,17 @@ var log = require('./logger');
 
 var Controller = require('./controller');
 
-var cameraServer = require('./cameraServer')({
-  device: process.argv[3] ? parseInt(process.argv[3], 10) : 1,
-  port: 3001
-});
-
 var uiServer = require('./uiServer')({
   port: 3000
 });
 
 var socketServer = require('./socketServer')(uiServer);
+
+var cameraServer = require('./cameraServer')({
+  fps: 10,
+  port: 3001,
+  device: process.argv[3] ? parseInt(process.argv[3], 10) : 1
+});
 
 var controller = new Controller(process.argv[2] || '/dev/ttyUSB1', {
   debug: false

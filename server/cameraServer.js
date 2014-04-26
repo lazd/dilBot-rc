@@ -1,98 +1,75 @@
+var socket = require('socket.io');
 var cv = require('opencv');
-var fs = require('fs');
-var http = require('http');
 var log = require('./logger');
 
 module.exports = function(options) {
   options = options || {};
 
   var device = options.device || 1;
-  var port = options.port || 3002;
-  var fps = options.fps || 4;
+  var port = options.port || 3001;
+  var fps = options.fps || 12;
+  var resolution = options.resolution || [160, 120];
   var connections = [];
 
-  // Send each image to all connected clients
-  function sendToAll() {
-    connections.forEach(sendToOne);
-  }
+  // Open socket without logging
+  io = socket.listen(port, { log: false });
+  io.set('log level', 1);
 
-  // Send an image to a given client
-  function sendToOne(res) {
-    res.write('--mjpegBoundry\r\n');
-    res.write('Content-Type: image/jpeg\r\n');
-    res.write('Content-Length: ' + buffer.length + '\r\n');
-    res.write('\r\n');
-    res.write(buffer, 'binary');
-    res.write('\r\n');
-  }
+  // @todo is listen async? if so, don't log until socket actually open
+  log('camServer: Started');
 
-  var server = http.createServer(function(req, res) {
-    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    log('camServer: client connected from %s', ip);
-
-    // Store a reference to each connection
-    connections.push(res);
-
-    res.writeHead(200, {
-      'Content-Type': 'multipart/x-mixed-replace; boundary=mjpegBoundry',
-      'Cache-Control': 'no-cache',
-      'Connection': 'close',
-      'Pragma': 'no-cache'
-    });
-
-    // Start streaming when someone connects
-    // @todo don't make this call unless the stream is paused
-    startPolling();
-
-    res.connection.on('close', function() {
-      log('camServer: client disconnected from %s', ip);
-
-      var index = connections.indexOf(res);
-      connections.splice(res, 1);
-
-      // Stop streaming if nobody is connected
-      if (connections.length === 0) {
-        stopPolling();
-      }
-    });
+  io.sockets.on('connection', function(socket) {
+    log('camServer: Client connected from %s', socket.handshake.address.address);
   });
 
-  server.listen(port);
-  log('camServer: Started on port %d', port);
-
-  function startPolling() {
-    if (!pollCamera) {
-      pollCamera = true;
-      getImage();
-    }
+  // Send each image to all connected clients
+  function broadcastImage(buffer) {
+    io.sockets.emit('image', buffer);
   }
 
-  function stopPolling() {
-    pollCamera = false;
-    clearTimeout(pollTimeout);
-  }
-
+  /*
+  // Streaming
   // Create a camera capture stream
-  var pollCamera = false;
   var camera = new cv.VideoCapture(device);
+  var cameraStream = camera.toStream();
   var buffer = new Buffer(0);
 
-  var pollTimeout;
+  cameraStream.on('error', function(err) {
+    log('camServer: Error reading image from camera %s', err);
+  });
+
+  cameraStream.on('data', function(image) {
+    // @todo check if resize is necessary
+    image.resize(resolution[0], resolution[1]);
+    buffer = image.toBuffer().toString('base64');
+    broadcastImage();
+  });
+
+  cameraStream.read();
+  */
+
+  // Interval based
+  var readTimeout;
+  var camera = new cv.VideoCapture(device);
   function getImage() {
+    clearTimeout(readTimeout);
     camera.read(function(err, image) {
       if (err) {
         log('camServer: Error reading image from camera %s', err);
         return;
       }
 
-      buffer = image.toBuffer();
+      // @todo check if resize is necessary
+      image.resize(resolution[0], resolution[1]);
+      var buffer = image.toBuffer().toString('base64');
+      broadcastImage(buffer);
 
-      sendToAll();
-
-      // Do next poll
-      if (pollCamera) {
-        pollTimeout = setTimeout(getImage, 1000 / fps);
-      }
+      // @todo calculate correct delay based on time last frame sent
+      readTimeout = setTimeout(getImage, 1000 / fps);
     });
   }
+
+  getImage();
+
+  return io;
 };

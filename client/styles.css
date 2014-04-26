@@ -21,11 +21,6 @@ body {
 }
 
 .b-Feed {
-	background: url('bk.jpg');
-	background-size: auto 100%	;
-	background-position: center center;
-	background-repeat: no-repeat;
-
 	z-index: 0;
 	position: absolute;
 	left: 0;

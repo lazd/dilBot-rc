@@ -13,14 +13,16 @@ var b;
       sendInterval: 1000/24, // 24 times per second
       joyCenter: 1500,
       joyWidth: null,
-      logAutoScroll: true
+      logAutoScroll: true,
+      imageFeedPort: 3001
     },
 
     state: null,
 
     init: function() {
-      // Connect to socket
+      // Connect to sockets
       var socket = b.socket = io.connect();
+      var feedSocket = b.feedSocket = io.connect('http://'+window.location.hostname+':'+b.config.imageFeedPort);
 
       socket.on('hello', function() {
         b.log('Connection established');
@@ -34,18 +36,27 @@ var b;
         b.setHUD(state);
       });
 
+      feedSocket.on('image', function(image) {
+        b.updateFeed(image);
+      });
+
       // Get elements
       b.els.throttleHUD = document.querySelector('.js-throttleHUD');
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
+      b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.joystick = document.querySelector('.js-joystick');
       b.els.knob = document.querySelector('.js-knob');
       b.els.log = document.querySelector('.js-log');
       b.els.feed = document.querySelector('.js-feed');
 
-      // Set feed
-      b.els.feed.style.backgroundImage = 'url(http://'+window.location.hostname+':3001/feed.jpg)';
+      // Get the feed context
+      b.feedCtx = b.els.feed.getContext('2d');
 
-      // Stop bouncing
+      // Set feed size
+      b.setFeedSize();
+      window.addEventListener('resize', b.setFeedSize, false);
+
+      // Stop bouncing on scroll
       document.body.addEventListener('touchmove', b.stopEvent, false);
 
       // Be joystick-like
@@ -68,6 +79,45 @@ var b;
       if (b.config.logAutoScroll) {
         b.els.log.scrollTop = b.els.log.scrollHeight;
       }
+    },
+
+    updateFeed: function(image) {
+      // Create image object from base64
+      var newImage = new Image();
+      newImage.src = 'data:image/png;base64,' + image;
+
+      // Scale to fit canvas
+      var height = b.canvasHeight;
+      var scale = height / newImage.height;
+      var width = newImage.width * scale;
+
+      // Center the image
+      var x = (b.canvasWidth - width) / 2;
+
+      // Draw the image
+      b.feedCtx.drawImage(newImage, x, 0, width, height);
+
+      // Store the last draw time
+      var time = new Date().getTime();
+      if (b.lastFrameTime) {
+        var timeBetween = time - b.lastFrameTime;
+
+        // @todo use a simple moving average instead
+        if (b.lastDrawTime) {
+          var weightRatio = 0.1;
+          var timeToDraw = timeBetween * (1 - weightRatio) + b.lastDrawTime * weightRatio;
+          var fps = 1000 / timeToDraw;
+          b.els.fpsHUD.textContent = fps.toFixed(1);
+        }
+
+        b.lastDrawTime = timeBetween;
+      }
+      b.lastFrameTime = time;
+    },
+
+    setFeedSize: function() {
+      b.els.feed.width = b.canvasWidth = document.body.offsetWidth;
+      b.els.feed.height = b.canvasHeight = document.body.offsetHeight;
     },
 
     stopEvent: function(event) {
