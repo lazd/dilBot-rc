@@ -125,6 +125,10 @@ Controller.prototype.sendCommand = function(command) {
   this.sp.write(command);
 };
 
+Controller.prototype.stop = function(command) {
+  this.sendCommand('ST');
+};
+
 Controller.prototype.setState = function(throttle, steer) {
   // @todo do nothing unless connected
   var state = processStick(throttle, steer);

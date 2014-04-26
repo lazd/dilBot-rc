@@ -4,6 +4,7 @@ var b;
   var REVERSE = 0;
   var BRAKING = 1;
   var FORWARD = 2;
+  var VOLT = 67;
 
   b = {
     els: {},
@@ -101,7 +102,7 @@ var b;
     setHUD: function(state) {
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
-      b.els.batteryHUD.textContent = (state.battery/65).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
+      b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
     },
 
     handleJoystickMove: function(evt) {
@@ -140,15 +141,19 @@ var b;
       });
     },
 
+    sendCommand: function(command, data) {
+      b.socket.emit('command', {
+        command: command,
+        data: data
+      });
+    },
+
     stop: function() {
       b.els.knob.classList.add('b-transitionPosition');
       b.els.knob.style.left = '50%';
       b.els.knob.style.top = '50%';
 
-      b.sendState({
-        throttle: b.config.joyCenter,
-        steering: b.config.joyCenter
-      });
+      b.sendCommand('stop');
     }
   };
 

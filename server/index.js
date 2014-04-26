@@ -31,9 +31,25 @@ controller.on('state', function(state) {
   socketServer.io.sockets.emit('state', state);
 });
 
+controller.on('batteryDead', function(data) {
+  var message = 'Battery dead';
+  log(message);
+  socketServer.io.sockets.emit('log', message);
+});
+
+controller.on('batteryCharged', function(data) {
+  var message = 'Battery charge completed in '+log.getTime(data.time);
+  log(message);
+  socketServer.io.sockets.emit('log', message);
+});
+
 // Send commands to controller
 socketServer.on('command', function(event) {
-  if (event.command === 'setState') {
+  var command = event.command;
+  if (command === 'setState') {
     controller.setState(event.data.throttle, event.data.steering);
+  }
+  else if (command === 'stop') {
+    controller.stop();
   }
 });
