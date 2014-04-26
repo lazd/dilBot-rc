@@ -4,16 +4,16 @@ var log = require('./logger');
 var path = require('path');
 
 module.exports = function(options) {
-	options = options || {};
+  options = options || {};
 
-	var port = options.port || 3000;
-	var directory = options.directory || path.join(__dirname, '..', 'client');
+  var port = options.port || 3000;
+  var directory = options.directory || path.join(__dirname, '..', 'client');
 
-	var app = connect()
-		.use(connect.static(directory))
-		.listen(port);
+  var app = connect()
+    .use(connect.static(directory))
+    .listen(port);
 
-    log('UI server listening on %d', port);
+  log('uiServer: Started on port %d', port);
 
-	return app;
+  return app;
 };

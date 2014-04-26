@@ -9,6 +9,7 @@
     "connect": "^2.14.5",
     "keypress": "^0.2.1",
     "serialport": "^1.4.0",
-    "socket.io": "^0.9.16"
+    "socket.io": "^0.9.16",
+    "opencv": "^0.5.0"
   }
 }

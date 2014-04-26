@@ -50,14 +50,14 @@ Controller.prototype.connect = function() {
 
   sp.open(function(err) {
     if (err) {
-      log('Error connecting to serial: %s', err);
+      log('controller: Error connecting to serial: %s', err);
 
       controller.emit('error', err);
     }
   });
 
   sp.on('error', function(err) {
-    log('Error communicating over serial: %s', err);
+    log('controller: Error communicating over serial: %s', err);
 
     controller.emit('error', err);
 
@@ -65,7 +65,7 @@ Controller.prototype.connect = function() {
   });
 
   sp.on('open', function() {
-    log('Serial connection opened');
+    log('controller: Serial connection opened');
 
     controller.emit('connected', {});
 
@@ -83,7 +83,7 @@ Controller.prototype.connect = function() {
       }
       catch(err) {
         if (controller.debug) {
-          log('Discarding malformed message %s', packet)
+          log('controller: Discarding malformed message %s', packet)
           controller.emit('error', new Error('Got invalid message: '+err));
         }
         return;

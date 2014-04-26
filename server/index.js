@@ -1,10 +1,21 @@
 var log = require('./logger');
+
 var Controller = require('./controller');
-var cameraServer = require('./cameraServer')({ port: 3001 });
-var uiServer = require('./uiServer')({ port: 3000 });
+
+var cameraServer = require('./cameraServer')({
+  device: process.argv[3] ? parseInt(process.argv[3], 10) : 1,
+  port: 3001
+});
+
+var uiServer = require('./uiServer')({
+  port: 3000
+});
+
 var socketServer = require('./socketServer')(uiServer);
 
-var controller = new Controller(process.argv[2] || '/dev/cu.usbserial-A500SZXI');
+var controller = new Controller(process.argv[2] || '/dev/ttyUSB1', {
+  debug: false
+});
 
 controller.on('connected', function() {
   socketServer.io.sockets.emit('hello', {});

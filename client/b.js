@@ -38,6 +38,10 @@ var b;
       b.els.joystick = document.querySelector('.js-joystick');
       b.els.knob = document.querySelector('.js-knob');
       b.els.log = document.querySelector('.js-log');
+      b.els.feed = document.querySelector('.js-feed');
+
+      // Set feed
+      b.els.feed.style.backgroundImage = 'url(http://'+window.location.hostname+':3001/feed.jpg)';
 
       // Stop bouncing
       document.body.addEventListener('touchmove', b.stopEvent, false);
@@ -97,7 +101,7 @@ var b;
     setHUD: function(state) {
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
-      b.els.batteryHUD.textContent = (state.battery/65) +'v, ' + state.isCharged ? 'charged' : 'charging';
+      b.els.batteryHUD.textContent = (state.battery/65).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
     },
 
     handleJoystickMove: function(evt) {
