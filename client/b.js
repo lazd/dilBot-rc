@@ -10,6 +10,7 @@ var b;
     els: {},
 
     config: {
+      sendInterval: 1000/24, // 24 times per second
       joyCenter: 1500,
       joyWidth: null,
       logAutoScroll: true
@@ -106,6 +107,8 @@ var b;
     },
 
     handleJoystickMove: function(evt) {
+      clearInterval(b.moveInterval);
+
       evt.stopPropagation();
       evt.preventDefault();
 
@@ -116,7 +119,6 @@ var b;
 
       var steering = x;
       var throttle = b.config.joyWidth - y; // Invert, up is full throttle
-      // var throttle = y;
 
       steering = b.adjustContinuum(steering / b.config.joyWidth);
       throttle = b.adjustContinuum(throttle / b.config.joyWidth);
@@ -125,10 +127,18 @@ var b;
       b.els.knob.style.left = x+'px';
       b.els.knob.style.top = y+'px';
 
-      b.sendState({
-        throttle: throttle,
-        steering: steering
-      });
+      var doSend = function() {
+        b.sendState({
+          throttle: throttle,
+          steering: steering
+        });
+      };
+
+      // Immediately send the command
+      doSend();
+
+      // Resend command until we stop
+      b.moveInterval = setInterval(doSend, b.config.sendInterval);
     },
 
     sendState: function(state) {
@@ -149,11 +159,12 @@ var b;
     },
 
     stop: function() {
+      clearInterval(b.moveInterval);
+      b.sendCommand('stop');
+
       b.els.knob.classList.add('b-transitionPosition');
       b.els.knob.style.left = '50%';
       b.els.knob.style.top = '50%';
-
-      b.sendCommand('stop');
     }
   };
 
