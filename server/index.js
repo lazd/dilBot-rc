@@ -27,9 +27,50 @@ controller.on('error', function(err) {
   socketServer.io.sockets.emit('log', err.toString());
 });
 
+var COLLISION_DIST = 20;
+var CENTER = 1500;
+var SPEED = 95;
+var STEER = SPEED * 3.5;
+var AUTODEBUG = false;
+
 // Re-broadcast state updates from the bot
 controller.on('state', function(state) {
   socketServer.io.sockets.emit('state', state);
+
+  // Autonomous driving
+  if (state.leftDist < COLLISION_DIST && state.rightDist < COLLISION_DIST) {
+    // Turn around
+    if (AUTODEBUG) {
+      log('Turn around...');
+    }
+  }
+  else if (state.leftDist < COLLISION_DIST) {
+    // Turn right
+    if (AUTODEBUG) {
+      log('Turn right...');
+    }
+    else {
+      controller.setState(CENTER, CENTER + STEER);
+    }
+  }
+  else if (state.rightDist < COLLISION_DIST) {
+    // Turn left
+    if (AUTODEBUG) {
+      log('Turn left...');
+    }
+    else {
+      controller.setState(CENTER, CENTER - STEER);
+    }
+  }
+  else {
+    // Go forward
+    if (AUTODEBUG) {
+      log('Go forward...');
+    }
+    else {
+      controller.setState(CENTER + SPEED, CENTER);
+    }
+  }
 });
 
 // Re-emit logs
