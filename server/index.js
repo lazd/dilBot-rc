@@ -32,6 +32,12 @@ controller.on('state', function(state) {
   socketServer.io.sockets.emit('state', state);
 });
 
+// Re-emit logs
+controller.on('log', function(message) {
+  socketServer.io.sockets.emit('log', message.message);
+});
+
+// Notify of battery state changes
 controller.on('batteryDead', function(data) {
   var message = 'Battery dead';
   log(message);

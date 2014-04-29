@@ -98,6 +98,11 @@ Controller.prototype.connect = function() {
       if (type === 'state') {
         controller.robotState = message;
       }
+
+      // Print log messages to the console
+      if (type === 'log') {
+        log(message.message);
+      }
     });
 
     // Catch keypresses

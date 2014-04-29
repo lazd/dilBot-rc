@@ -24,10 +24,6 @@ var b;
       var socket = b.socket = io.connect();
       var feedSocket = b.feedSocket = io.connect('http://'+window.location.hostname+':'+b.config.imageFeedPort);
 
-      socket.on('hello', function() {
-        b.log('Connection established');
-      });
-
       socket.on('log', function(str) {
         b.log(str);
       });
