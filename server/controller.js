@@ -150,7 +150,6 @@ Controller.prototype.setState = function(throttle, steer) {
   this.sendCommand(command);
 };
 
-
 function scaleSpeed(speed) {
   // Scale 1000-2000uS to 0-255
   var pwm = Math.abs(speed-STICKCENTER)*10/12;
@@ -167,12 +166,12 @@ function scaleSpeed(speed) {
 */
 function processStick(throttle, steering) {
   // if speed input is within deadband set to 0
-  if (Math.abs(throttle-STICKCENTER) < STICKDEADBAND) {
+  if (Math.abs(throttle - STICKCENTER) < STICKDEADBAND) {
     throttle = STICKCENTER;
   }
 
   // if steering input is within deadband set to 0
-  if (Math.abs(steering-STICKCENTER) < STICKDEADBAND) {
+  if (Math.abs(steering - STICKCENTER) < STICKDEADBAND) {
     steering = STICKCENTER;
   }
 
@@ -185,12 +184,12 @@ function processStick(throttle, steering) {
   var rightMode = REVERSE;
 
   // if left input is forward then set left mode to forward
-  if (leftSpeed > (STICKCENTER+STICKDEADBAND)) {
+  if (leftSpeed > (STICKCENTER + STICKDEADBAND)) {
     leftMode = FORWARD;
   }
 
   // if right input is forward then set right mode to forward
-  if (rightSpeed > (STICKCENTER+STICKDEADBAND)) {
+  if (rightSpeed > (STICKCENTER + STICKDEADBAND)) {
     rightMode = FORWARD;
   }
 
