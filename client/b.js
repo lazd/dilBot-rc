@@ -40,6 +40,8 @@ var b;
       b.els.throttleHUD = document.querySelector('.js-throttleHUD');
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
+      b.els.leftDistHUD = document.querySelector('.js-leftDist');
+      b.els.rightDistHUD = document.querySelector('.js-rightDist');
       b.els.joystick = document.querySelector('.js-joystick');
       b.els.knob = document.querySelector('.js-knob');
       b.els.log = document.querySelector('.js-log');
@@ -152,6 +154,8 @@ var b;
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
       b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
+      b.els.leftDistHUD.textContent = state.leftDist;
+      b.els.rightDistHUD.textContent = state.rightDist;
     },
 
     handleJoystickMove: function(evt) {
