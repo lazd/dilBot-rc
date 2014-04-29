@@ -1,6 +1,8 @@
 var log = require('./logger');
+var constants = require('./constants');
 
 var Controller = require('./controller');
+var AutoDrive = require('./autodrive');
 
 var uiServer = require('./uiServer')({
   port: 3000
@@ -18,7 +20,15 @@ var controller = new Controller(process.argv[2] || '/dev/ttyUSB1', {
   debug: false
 });
 
+var autodrive = new AutoDrive(controller);
+
+// The bot will start in RC mode
+var mode = constants.mode.rc;
+
 controller.on('connected', function() {
+  // Switch mode to serial control once a connection is established
+  setMode(MODE_SERIAL);
+
   socketServer.io.sockets.emit('hello', {});
 });
 
@@ -27,49 +37,13 @@ controller.on('error', function(err) {
   socketServer.io.sockets.emit('log', err.toString());
 });
 
-var COLLISION_DIST = 20;
-var CENTER = 1500;
-var SPEED = 95;
-var STEER = SPEED * 3.5;
-var AUTODEBUG = false;
-
 // Re-broadcast state updates from the bot
 controller.on('state', function(state) {
   socketServer.io.sockets.emit('state', state);
 
-  // Autonomous driving
-  if (state.leftDist < COLLISION_DIST && state.rightDist < COLLISION_DIST) {
-    // Turn around
-    if (AUTODEBUG) {
-      log('Turn around...');
-    }
-  }
-  else if (state.leftDist < COLLISION_DIST) {
-    // Turn right
-    if (AUTODEBUG) {
-      log('Turn right...');
-    }
-    else {
-      controller.setState(CENTER, CENTER + STEER);
-    }
-  }
-  else if (state.rightDist < COLLISION_DIST) {
-    // Turn left
-    if (AUTODEBUG) {
-      log('Turn left...');
-    }
-    else {
-      controller.setState(CENTER, CENTER - STEER);
-    }
-  }
-  else {
-    // Go forward
-    if (AUTODEBUG) {
-      log('Go forward...');
-    }
-    else {
-      controller.setState(CENTER + SPEED, CENTER);
-    }
+  // Autonomous mode
+  if (mode === constants.mode.autonomous) {
+    autodrive.update(state);
   }
 });
 
@@ -97,7 +71,25 @@ socketServer.on('command', function(event) {
   if (command === 'setState') {
     controller.setState(event.data.throttle, event.data.steering);
   }
+  else if (command === 'setMode') {
+    setMode(event.mode);
+  }
   else if (command === 'stop') {
     controller.stop();
   }
 });
+
+function setMode(newMode) {
+  if (newMode === constants.mode.autonomous) {
+    // Autonomous control requires serial
+    controller.setMode(constants.mode.serial);
+  }
+  else {
+    controller.setMode(newMode);
+  }
+
+  log('Mode set to '+newMode);
+
+  // Store mode
+  mode = newMode;
+}

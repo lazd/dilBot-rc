@@ -4,14 +4,7 @@ var serialport = require('serialport');
 var SerialPort = serialport.SerialPort;
 var keypress = require('keypress');
 var log = require('./logger');
-
-const MAX = 2000;
-const MIN = 1000;
-const STICKCENTER = 1500;
-const STICKDEADBAND = 35;
-const FORWARD = 2;
-const BRAKE = 1;
-const REVERSE = 0;
+var constants = require('./constants');
 
 var stateInterval;
 
@@ -67,7 +60,7 @@ Controller.prototype.connect = function() {
   sp.on('open', function() {
     log('controller: Serial connection opened');
 
-    controller.emit('connected', {});
+    controller.emit('log', { message: 'Serial connection opened' });
 
     sp.on('data', function(packet) {
       // Give raw data as packet
@@ -130,8 +123,19 @@ Controller.prototype.sendCommand = function(command) {
   this.sp.write(command);
 };
 
-Controller.prototype.stop = function(command) {
+Controller.prototype.stop = function() {
   this.sendCommand('ST');
+};
+
+// 0 - RC control
+// 1 - Serial control
+Controller.prototype.setMode = function(mode) {
+  // MO followed by 1 byte indicating mode
+  var command = new Buffer(3);
+  command.write('MO');
+  command.writeUInt8(mode, 2);
+
+  this.sendCommand(command);
 };
 
 Controller.prototype.setState = function(throttle, steer) {
@@ -146,13 +150,12 @@ Controller.prototype.setState = function(throttle, steer) {
   command.writeUInt8(state.right.mode, 4);
   command.writeUInt8(state.right.pwm, 5);
 
-  // @todo handshake to confirm settings, store state
   this.sendCommand(command);
 };
 
 function scaleSpeed(speed) {
   // Scale 1000-2000uS to 0-255
-  var pwm = Math.abs(speed-STICKCENTER)*10/12;
+  var pwm = Math.abs(speed - constants.rc.center) * 10 / 12;
 
   // Set maximum limit 255
   pwm = Math.floor(Math.min(pwm, 255));
@@ -166,44 +169,44 @@ function scaleSpeed(speed) {
 */
 function processStick(throttle, steering) {
   // if speed input is within deadband set to 0
-  if (Math.abs(throttle - STICKCENTER) < STICKDEADBAND) {
-    throttle = STICKCENTER;
+  if (Math.abs(throttle - constants.rc.center) < constants.rc.deadband) {
+    throttle = constants.rc.center;
   }
 
   // if steering input is within deadband set to 0
-  if (Math.abs(steering - STICKCENTER) < STICKDEADBAND) {
-    steering = STICKCENTER;
+  if (Math.abs(steering - constants.rc.center) < constants.rc.deadband) {
+    steering = constants.rc.center;
   }
 
   // Mix speed and steering signals
-  steering = steering - STICKCENTER;
+  steering = steering - constants.rc.center;
   var leftSpeed = throttle + steering;
   var rightSpeed = throttle - steering;
 
-  var leftMode = REVERSE;
-  var rightMode = REVERSE;
+  var leftMode = constants.driveMode.reverse;
+  var rightMode = constants.driveMode.reverse;
 
   // if left input is forward then set left mode to forward
-  if (leftSpeed > (STICKCENTER + STICKDEADBAND)) {
-    leftMode = FORWARD;
+  if (leftSpeed > (constants.rc.center + constants.rc.deadband)) {
+    leftMode = constants.driveMode.forward;
   }
 
   // if right input is forward then set right mode to forward
-  if (rightSpeed > (STICKCENTER + STICKDEADBAND)) {
-    rightMode = FORWARD;
+  if (rightSpeed > (constants.rc.center + constants.rc.deadband)) {
+    rightMode = constants.driveMode.forward;
   }
 
-  var LeftPWM = scaleSpeed(leftSpeed);
-  var RightPWM = scaleSpeed(rightSpeed);
+  var leftPWM = scaleSpeed(leftSpeed);
+  var rightPWM = scaleSpeed(rightSpeed);
 
   return {
     left: {
       mode: leftMode,
-      pwm: LeftPWM
+      pwm: leftPWM
     },
     right: {
       mode: rightMode,
-      pwm: RightPWM
+      pwm: rightPWM
     }
   };
 }

@@ -11,7 +11,8 @@ var b;
 
     config: {
       sendInterval: 1000/24, // 24 times per second
-      joyCenter: 1500,
+      joyCenter: 1800,
+      joyRange: 500,
       joyWidth: null,
       logAutoScroll: true,
       imageFeedPort: 3001
@@ -126,13 +127,16 @@ var b;
     },
 
     adjustContinuum: function(percentage) {
-      percentage = Math.min(Math.max(percentage, 0), 1000);
+      var joyMin = b.config.joyCenter - b.config.joyRange
 
-      // Fit in 1000
-      percentage = percentage * 1000;
+      // Be a value percentage
+      percentage = Math.min(Math.max(percentage, 0), 100);
 
-      // With a minimum of 1000
-      percentage += 1000;
+      // Be within the expected range
+      percentage = percentage * (b.config.joyRange * 2);
+
+      // Be greater than the min
+      percentage += joyMin;
 
       return Math.floor(percentage);
     },
@@ -207,6 +211,13 @@ var b;
       b.socket.emit('command', {
         command: command,
         data: data
+      });
+    },
+
+    setMode: function(mode) {
+      b.socket.emit('command', {
+        command: 'setMode',
+        mode: mode
       });
     },
 
