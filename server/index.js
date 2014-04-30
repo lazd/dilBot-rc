@@ -25,11 +25,13 @@ var autodrive = new AutoDrive(controller);
 // The bot will start in RC mode
 var mode = constants.mode.rc;
 
-controller.on('connected', function() {
-  // Switch mode to serial control once a connection is established
-  setMode(MODE_SERIAL);
+controller.on('ready', function() {
+  log('main: Robot is ready');
 
-  socketServer.io.sockets.emit('hello', {});
+  // Switch mode to serial control once a connection is established
+  setMode(constants.mode.serial);
+
+  socketServer.io.sockets.emit('ready', {});
 });
 
 // Re-emit control errors as log
@@ -69,13 +71,24 @@ controller.on('batteryCharged', function(data) {
 socketServer.on('command', function(event) {
   var command = event.command;
   if (command === 'setState') {
+    // Set H bridge state
     controller.setState(event.data.throttle, event.data.steering);
   }
   else if (command === 'setMode') {
+    // Set communication mode
     setMode(event.mode);
   }
   else if (command === 'stop') {
+    // Stop
     controller.stop();
+  }
+  else if (command === 'charge') {
+    // Enter charge mode
+    controller.sendCommand('CH');
+  }
+  else if (command === 'write') {
+    // Raw comamnd
+    controller.sendCommand(event.data);
   }
 });
 
@@ -88,7 +101,7 @@ function setMode(newMode) {
     controller.setMode(newMode);
   }
 
-  log('Mode set to '+newMode);
+  log('main: Mode set to '+newMode);
 
   // Store mode
   mode = newMode;

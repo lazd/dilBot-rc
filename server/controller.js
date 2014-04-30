@@ -87,14 +87,13 @@ Controller.prototype.connect = function() {
       delete message.type;
       controller.emit(type, message);
 
-      // @todo copy properties, don't overwrite
       if (type === 'state') {
+        // @todo copy properties, don't overwrite
         controller.robotState = message;
       }
-
-      // Print log messages to the console
-      if (type === 'log') {
-        log(message.message);
+      else if (type === 'log') {
+        // Print log messages to the console
+        log('device: '+message.message);
       }
     });
 
@@ -105,14 +104,14 @@ Controller.prototype.connect = function() {
     process.stdin.on('keypress', function(chunk, key) {
       if (!key) return;
 
-      if (key.name === 'escape') {
-        sendCommand('ST');
-      }
-      else if (key.name === 'b') {
-        sendCommand('BT');
-      }
-      else if (key.ctrl && key.name === 'c') {
+      if (key.ctrl && key.name === 'c') {
         process.exit();
+      }
+      else if (key.name === 'escape') {
+        controller.sendCommand('ST');
+      }
+      else if (key.name === 'c') {
+        controller.sendCommand('CH');
       }
     });
   });
