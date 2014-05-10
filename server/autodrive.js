@@ -20,28 +20,34 @@ var AutoDrive = module.exports = function(controller) {
 util.inherits(AutoDrive, EventEmitter);
 
 AutoDrive.prototype.update = function(state) {
-  if (state.leftDist < constants.autonomy.collisionDist && state.rightDist < constants.autonomy.collisionDist) {
+  // Test for impending collisions
+  var frontCollide = state.centerDist < constants.autonomy.collisionDist;
+  var leftCollide = state.leftDist < constants.autonomy.collisionDist;
+  var rightCollide = state.rightDist < constants.autonomy.collisionDist;
+
+  if (frontCollide || (leftCollide && rightCollide)) {
     // Both sensors detect a wall, we can't go forward
     // Turn around
     if (this.mode != modes.turnAround) {
       log('Turn around...');
     }
     this.mode = modes.turnAround;
+    this.controller.stop();
   }
-  else if (state.rightDist < constants.autonomy.collisionDist) {
+  else if (rightCollide) {
     // Turn left
     if (this.mode != modes.turnLeft) {
       log('Turn left...');
     }
-    controller.setState(constants.rc.center, constants.rc.center - constants.autonomy.steer);
+    this.controller.setState(constants.rc.center, constants.rc.center - constants.autonomy.steer);
     this.mode = modes.turnLeft;
   }
-  else if (state.leftDist < constants.autonomy.collisionDist) {
+  else if (leftCollide) {
     // Turn right
     if (this.mode != modes.turnRight) {
       log('Turn right...');
     }
-    controller.setState(constants.rc.center, constants.rc.center + constants.autonomy.steer);
+    this.controller.setState(constants.rc.center, constants.rc.center + constants.autonomy.steer);
     this.mode = modes.turnRight;
   }
   else {
@@ -49,7 +55,7 @@ AutoDrive.prototype.update = function(state) {
     if (this.mode != modes.go) {
       log('Go forward...');
     }
-    controller.setState(constants.rc.center + constants.autonomy.speed, constants.rc.center);
+    this.controller.setState(constants.rc.center + constants.autonomy.speed, constants.rc.center);
     this.mode = modes.go;
   }
 };
