@@ -31,7 +31,6 @@ body {
 
 .b-Joystick {
 	margin: auto;
-	font-size: 200px;
 
 	z-index: 1;
 	position: absolute;
@@ -43,15 +42,47 @@ body {
 
 	border: 1px solid black;
 	border-radius: 1em;
-	background: rgba(100, 100, 100, 0.5);
+
+	/* top glow */
+	/* bottom glow */
+	box-shadow: inset 0 32px 48px rgba(0, 0, 0, 0.85),
+				inset 0 0 6px rgba(0, 0, 0, 0.25);
+
+	background: linear-gradient(0deg, rgb(25, 33, 38) 0%, rgb(46, 59, 69) 62%, rgb(62, 84, 102) 100%);
+
+	font-size: 196px;
 
 	cursor: move;
 }
 
-.b-Joystick-knob {
-	font-size: 0.25em;
-
+.b-Joystick:after {
 	position: absolute;
+	z-index: 0;
+	top: 50%;
+	left: 50%;
+	width: 1em;
+	height: 1em;
+	margin-top: -0.5em;
+	margin-left: -0.5em;
+
+	content: '';
+
+	border: 1px solid black;
+	border-radius: 0.5em;
+
+	font-size: 0.75em;
+
+	/* top glow */
+	/* bottom glow */
+	box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.85),
+				inset 0 0 6px rgba(0, 0, 0, 0.25);
+
+	background: linear-gradient(0deg, rgb(25, 33, 38) 0%, rgb(46, 59, 69) 62%, rgb(62, 84, 102) 100%);
+}
+
+.b-Joystick-knob {
+	position: absolute;
+	z-index: 1;
 	top: 50%;
 	left: 50%;
 
@@ -61,23 +92,80 @@ body {
 	width: 1em;
 	height: 1em;
 
-	border: 1px solid black;
 	border-radius: 1em;
 
-	background: rgba(255, 255, 255, 0.5);
+	background: linear-gradient(0deg, rgb(18, 25, 29), rgb(54, 72, 86));
+
+	/* top glow */
+	/* bottom glow */
+	/* outer */
+	box-shadow: inset 0 1px 3px rgb(83, 112, 135),
+				inset 0 0 1px rgba(120, 141, 155, 0.25),
+				0 8px 8px rgba(0, 0, 0, 0.5);
 
 	/* Avoid iOS selections */
 	pointer-events: none;
+
+	font-size: 0.3125em;
 }
+
+.b-Joystick-direction {
+	position: absolute;
+	z-index: 1;
+	line-height: 2em;
+	width: 2em;
+	height: 2em;
+
+	font-size: 0.0625em;
+
+	background-size: 65%;
+	background-position: center;
+	background-repeat: no-repeat;
+
+	opacity: 0.75;
+}
+
+.b-Joystick-direction--up,
+.b-Joystick-direction--down {
+	left: 50%;
+	margin-left: -1em;
+}
+
+.b-Joystick-direction--left,
+.b-Joystick-direction--right {
+	top: 50%;
+	margin-top: -1em;
+}
+
+.b-Joystick-direction--up {
+	top: 0;
+	background-image: url('images/arrow-up.svg');
+}
+
+.b-Joystick-direction--right {
+	right: 0;
+	background-image: url('images/arrow-right.svg');
+}
+
+.b-Joystick-direction--down {
+	bottom: 0;
+	background-image: url('images/arrow-down.svg');
+}
+
+.b-Joystick-direction--left {
+	left: 0;
+	background-image: url('images/arrow-left.svg');
+}
+
 
 .b-Hud {
 	position: absolute;
-	top: 0;
-	right: 0;
+	bottom: 0;
+	left: 0;
 
 	font-family: monospace;
 
-	text-align: right;
+	text-align: left;
 }
 
 .b-Hud-item {
@@ -88,11 +176,115 @@ body {
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	width: 50%;
+	right: 0;
+	width: 100%;
 	max-height: 100%;
 
 	font-family: monospace;
 	color: rgba(255, 255, 255, 0.85);
+	text-align: center;
 
 	overflow: auto;
+}
+
+.b-Distance {
+	position: absolute;
+
+	width: 3em;
+	height: 3em;
+
+	font-size: 24px;
+	color: rgba(0,0,0,0.5);
+	text-shadow: 0 0 2px solid rgba(0,0,0,1);
+	text-align: center;
+	line-height: 3em;
+	font-family: monospace;
+
+	transition: all 0.15s;
+}
+
+.b-Distance:after {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0.25em;
+
+	text-align: center;
+
+	font-size: 0.5em;
+	line-height: 0.5em;
+
+	content: 'cm';
+}
+
+.b-Distance--left,
+.b-Distance--right {
+	width: 4em;
+	height: 4em;
+	top: -2.125em;
+	line-height: 6.25em;
+}
+
+.b-Distance--left {
+	left: -2.125em;
+	-webkit-transform: rotate3d(0, 0, 1, -45deg);
+}
+
+.b-Distance--right {
+	right: -2.125em;
+	-webkit-transform: rotate3d(0, 0, 1, 45deg);
+}
+
+.b-Distance--center {
+	width: 3.25em;
+	height: 3.25em;
+	top: -1.75em;
+	left: 50%;
+	right: 50%;
+	margin-left: -1.5em;
+	border-radius: 2em;
+
+	line-height: 4.75em;
+}
+
+.b-Heading {
+	position: absolute;
+	bottom: 0.125em;
+	left: 0.125em;
+	z-index: 1;
+
+	width: 1em;
+	height: 1em;
+	border-radius: 1em;
+
+	background: rgba(0,0,0,0.5);
+
+	border: 1px solid black;
+
+	font-size: 196px;
+}
+
+.b-Heading-yaw {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	-webkit-transform: rotate3d(0, 0, 0, 0deg);
+
+	background: url('images/heading_yaw.svg') center center;
+	background-size: 100%;
+}
+
+.b-Heading-mechanics {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+
+	background: url('images/heading_mechanics.svg') center center;
+	background-size: 100%;
 }

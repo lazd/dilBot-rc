@@ -15,7 +15,8 @@ var b;
       joyRange: 500,
       joyWidth: null,
       logAutoScroll: true,
-      imageFeedPort: 3001
+      imageFeedPort: 3001,
+      collisionDistance: 25 // Higher than the actual
     },
 
     state: null,
@@ -43,7 +44,9 @@ var b;
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.headingHUD = document.querySelector('.js-headingHUD');
       b.els.leftDistHUD = document.querySelector('.js-leftDist');
+      b.els.centerDistHUD = document.querySelector('.js-centerDist');
       b.els.rightDistHUD = document.querySelector('.js-rightDist');
+      b.els.headingYaw = document.querySelector('.js-headingYaw');
       b.els.joystick = document.querySelector('.js-joystick');
       b.els.knob = document.querySelector('.js-knob');
       b.els.log = document.querySelector('.js-log');
@@ -159,9 +162,79 @@ var b;
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
       b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
-      b.els.leftDistHUD.textContent = state.leftDist;
-      b.els.rightDistHUD.textContent = state.rightDist;
+
       b.els.headingHUD.textContent = state.heading;
+
+      b.els.leftDistHUD.textContent = state.leftDist;
+      b.els.centerDistHUD.textContent = state.centerDist;
+      b.els.rightDistHUD.textContent = state.rightDist;
+
+      var leftColor = b.getDistanceColor(state.leftDist, b.config.collisionDistance);
+      var centerColor = b.getDistanceColor(state.centerDist, b.config.collisionDistance);
+      var rightColor = b.getDistanceColor(state.rightDist, b.config.collisionDistance);
+
+      b.els.leftDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.leftDist, b.config.collisionDistance));
+      b.els.centerDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.centerDist, b.config.collisionDistance));
+      b.els.rightDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.rightDist, b.config.collisionDistance));
+
+      b.els.leftDistHUD.style.backgroundColor = leftColor;
+      b.els.centerDistHUD.style.backgroundColor = centerColor;
+      b.els.rightDistHUD.style.backgroundColor = rightColor;
+      b.els.leftDistHUD.style.boxShadow = '0 0 5px 5px '+leftColor;
+      b.els.centerDistHUD.style.boxShadow = '0 0 5px 5px '+centerColor;
+      b.els.rightDistHUD.style.boxShadow = '0 0 5px 5px '+rightColor;
+
+      b.els.headingYaw.style.webkitTransform = 'rotate3d(0,0,1, '+(state.heading * -1)+'deg)';
+    },
+
+    getDistanceFactor: function(value, min) {
+      var factor = 1;
+      var safeDistance = min * 4;
+      if (value < min) {
+        factor = 0;
+      }
+      else if (value < safeDistance) {
+        factor = value / safeDistance;
+      }
+
+      factor = 1 - factor;
+
+      return factor;
+    },
+
+    getOpacityFromDistanceFactor: function(factor) {
+      return Math.max(factor * 0.85, 0.15);
+    },
+
+    getDistanceColor: function(value, min, withAlpha) {
+      factor = b.getDistanceFactor(value, min)
+
+      var red = 0;
+      var green = 0;
+      var blue = 0;
+
+      if (factor >= 0 && factor < 0.5) {
+        // First, green stays at 100%, red raises to 100%
+        green = 1.0
+        red = 2 * factor
+      }
+      else if (factor >= 0.5 && factor <= 1) {
+        // Then red stays at 100%, green decays
+        red = 1.0
+        green = 1.0 - 2 * (factor-0.5)
+      }
+
+      red *= 255;
+      green *= 255;
+      blue *= 255;
+
+      if (withAlpha) {
+        var alpha = b.getOpacityFromDistanceFactor(factor);
+        return 'rgba('+red.toFixed(0)+','+green.toFixed(0)+','+blue.toFixed(0)+','+alpha.toFixed(2)+')';
+      }
+      else {
+        return 'rgb('+red.toFixed(0)+','+green.toFixed(0)+','+blue.toFixed(0)+')';
+      }
     },
 
     handleJoystickMove: function(evt) {

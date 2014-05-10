@@ -19,18 +19,30 @@
 	</head>
 
 	<body>
-		<div class="b-Joystick js-joystick">
-			<div class="b-Joystick-knob js-knob"></div>
-		</div>
-
 		<canvas class="b-Feed js-feed"></canvas>
 
 		<div class="b-Log js-log"></div>
 
+		<div class="b-Joystick js-joystick">
+			<div class="b-Joystick-direction b-Joystick-direction--up"></div>
+			<div class="b-Joystick-direction b-Joystick-direction--right"></div>
+			<div class="b-Joystick-direction b-Joystick-direction--down"></div>
+			<div class="b-Joystick-direction b-Joystick-direction--left"></div>
+			<div class="b-Joystick-knob js-knob"></div>
+		</div>
+
+		<div class="b-Heading">
+			<div class="b-Heading-mechanics"></div>
+			<div class="b-Heading-yaw js-headingYaw"></div>
+		</div>
+
+
+		<div class="b-Distance b-Distance--left js-leftDist"></div>
+		<div class="b-Distance b-Distance--center js-centerDist"></div>
+		<div class="b-Distance b-Distance--right js-rightDist"></div>
+
 		<div class="b-Hud">
 			<div class="b-Hud-item">Throttle: <span class="b-Hud-value js-throttleHUD"></span></div>
-			<div class="b-Hud-item">Left: <span class="b-Hud-value js-leftDist"></span></div>
-			<div class="b-Hud-item">Right: <span class="b-Hud-value js-rightDist"></span></div>
 			<div class="b-Hud-item">Battery: <span class="b-Hud-value js-batteryHUD"></span></div>
 			<div class="b-Hud-item">Heading: <span class="b-Hud-value js-headingHUD"></span></div>
 			<div class="b-Hud-item">FPS: <span class="b-Hud-value js-fpsHUD"></span></div>
