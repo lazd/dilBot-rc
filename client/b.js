@@ -43,14 +43,20 @@ var b;
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.headingHUD = document.querySelector('.js-headingHUD');
-      b.els.leftDistHUD = document.querySelector('.js-leftDist');
-      b.els.centerDistHUD = document.querySelector('.js-centerDist');
-      b.els.rightDistHUD = document.querySelector('.js-rightDist');
+
       b.els.headingYaw = document.querySelector('.js-headingYaw');
       b.els.joystick = document.querySelector('.js-joystick');
       b.els.knob = document.querySelector('.js-knob');
       b.els.log = document.querySelector('.js-log');
       b.els.feed = document.querySelector('.js-feed');
+
+      b.els.leftDistHUD = document.querySelector('.js-leftDistText');
+      b.els.centerDistHUD = document.querySelector('.js-centerDistText');
+      b.els.rightDistHUD = document.querySelector('.js-rightDistText');
+
+      b.els.leftDistHUDArrow = document.querySelector('.js-leftDistArrow');
+      b.els.centerDistHUDArrow = document.querySelector('.js-centerDistArrow');
+      b.els.rightDistHUDArrow = document.querySelector('.js-rightDistArrow');
 
       // Get the feed context
       b.feedCtx = b.els.feed.getContext('2d');
@@ -173,16 +179,16 @@ var b;
       var centerColor = b.getDistanceColor(state.centerDist, b.config.collisionDistance);
       var rightColor = b.getDistanceColor(state.rightDist, b.config.collisionDistance);
 
-      b.els.leftDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.leftDist, b.config.collisionDistance));
-      b.els.centerDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.centerDist, b.config.collisionDistance));
-      b.els.rightDistHUD.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.rightDist, b.config.collisionDistance));
+      b.els.leftDistHUDArrow.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.leftDist, b.config.collisionDistance));
+      b.els.centerDistHUDArrow.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.centerDist, b.config.collisionDistance));
+      b.els.rightDistHUDArrow.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.rightDist, b.config.collisionDistance));
 
-      b.els.leftDistHUD.style.backgroundColor = leftColor;
-      b.els.centerDistHUD.style.backgroundColor = centerColor;
-      b.els.rightDistHUD.style.backgroundColor = rightColor;
-      b.els.leftDistHUD.style.boxShadow = '0 0 5px 5px '+leftColor;
-      b.els.centerDistHUD.style.boxShadow = '0 0 5px 5px '+centerColor;
-      b.els.rightDistHUD.style.boxShadow = '0 0 5px 5px '+rightColor;
+      b.els.leftDistHUDArrow.style.backgroundColor = leftColor;
+      b.els.centerDistHUDArrow.style.backgroundColor = centerColor;
+      b.els.rightDistHUDArrow.style.backgroundColor = rightColor;
+      // b.els.leftDistHUD.style.boxShadow = '0 0 5px 5px '+leftColor;
+      // b.els.centerDistHUD.style.boxShadow = '0 0 5px 5px '+centerColor;
+      // b.els.rightDistHUD.style.boxShadow = '0 0 5px 5px '+rightColor;
 
       b.els.headingYaw.style.webkitTransform = 'rotate3d(0,0,1, '+(state.heading * -1)+'deg)';
     },
