@@ -43,6 +43,7 @@ var b;
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.headingHUD = document.querySelector('.js-headingHUD');
+      b.els.commModeSelect = document.querySelector('.js-commModeSelect');
 
       b.els.headingYaw = document.querySelector('.js-headingYaw');
       b.els.joystick = document.querySelector('.js-joystick');
@@ -71,7 +72,10 @@ var b;
       // Be joystick-like
       b.els.joystick.addEventListener('touchstart', b.handleJoystickMove, false);
       b.els.joystick.addEventListener('touchmove', b.handleJoystickMove, false);
-      b.els.joystick.addEventListener('touchend', b.stop, false);
+      b.els.joystick.addEventListener('touchend', b.handleJoystickStop, false);
+
+      // Listen for mode changes
+      b.els.commModeSelect.addEventListener('change', b.handleCommModeChange, false);
 
       b.config.joyWidth = b.els.joystick.offsetWidth
       b.config.throttle = b.config.joyCenter;
@@ -183,14 +187,15 @@ var b;
       b.els.centerDistHUDArrow.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.centerDist, b.config.collisionDistance));
       b.els.rightDistHUDArrow.style.opacity = b.getOpacityFromDistanceFactor(b.getDistanceFactor(state.rightDist, b.config.collisionDistance));
 
-      b.els.leftDistHUDArrow.style.backgroundColor = leftColor;
-      b.els.centerDistHUDArrow.style.backgroundColor = centerColor;
-      b.els.rightDistHUDArrow.style.backgroundColor = rightColor;
-      // b.els.leftDistHUD.style.boxShadow = '0 0 5px 5px '+leftColor;
-      // b.els.centerDistHUD.style.boxShadow = '0 0 5px 5px '+centerColor;
-      // b.els.rightDistHUD.style.boxShadow = '0 0 5px 5px '+rightColor;
+      b.els.leftDistHUDArrow.style.fill = leftColor;
+      b.els.centerDistHUDArrow.style.fill = centerColor;
+      b.els.rightDistHUDArrow.style.fill = rightColor;
 
       b.els.headingYaw.style.webkitTransform = 'rotate3d(0,0,1, '+(state.heading * -1)+'deg)';
+
+      if (b.els.commModeSelect.value !== state.commMode) {
+        b.els.commModeSelect.value = state.commMode;
+      }
     },
 
     getDistanceFactor: function(value, min) {
@@ -241,6 +246,15 @@ var b;
       else {
         return 'rgb('+red.toFixed(0)+','+green.toFixed(0)+','+blue.toFixed(0)+')';
       }
+    },
+
+    handleCommModeChange: function(evt) {
+      b.setMode(b.els.commModeSelect.value);
+    },
+
+    handleJoystickStop: function(evt) {
+      b.stop();
+      clearInterval(b.moveInterval);
     },
 
     handleJoystickMove: function(evt) {

@@ -20,6 +20,14 @@ body {
 	background: black;
 }
 
+.b-Settings {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	color: white;
+}
+
 .b-Feed {
 	z-index: 0;
 	position: absolute;
@@ -108,6 +116,9 @@ body {
 	/* Avoid iOS selections */
 	pointer-events: none;
 
+	/* Force accel, gets rid of trails in Chrome */
+	-webkit-transform: translate3d(0,0,0);
+
 	font-size: 0.3125em;
 }
 
@@ -192,19 +203,30 @@ body {
 .b-Distance {
 	position: absolute;
 
-	width: 3em;
-	height: 3em;
+	width: 2.5em;
+	height: 5em;
 
 	font-size: 24px;
 	color: rgba(0,0,0,0.5);
 	text-shadow: 0 0 2px solid rgba(0,0,0,1);
-	text-align: center;
-	line-height: 3em;
 	font-family: monospace;
+	line-height: 5em;
+}
 
-	transition: all 0.15s;
+.b-Distance--center {
+	width: 5em;
+	height: 2.5em;
+	text-align: center;
+}
 
-	background: red; /* temp */
+.b-Distance-triangle {
+	height: 100%;
+	width: 100%;
+}
+
+.b-Distance-triangle > polygon {
+	fill: transparent;
+	transition: fill 0.15s;
 }
 
 .b-Distance-text {
@@ -212,58 +234,41 @@ body {
 	display: block;
 	width: 100%;
 	height: 100%;
+	box-sizing: border-box;
+	padding: 0 0.125em;
 }
 
+/*
 .b-Distance-text:after {
 	font-size: 0.5em;
 	vertical-align: middle;
-
+	text-align: center;
 	content: 'cm';
 }
+*/
 
 .b-Distance--left,
 .b-Distance--right {
-	width: 4em;
-	height: 4em;
 	margin-top: -2em;
 	top: 50%;
 }
 
 .b-Distance--left {
 	left: 2.125em;
-	-webkit-mask-image: linear-gradient(45deg,#000, #000 50%, transparent 50%, transparent);
-	-webkit-transform: rotate3d(0, 0, 1, 45deg);
-}
-
-.b-Distance--left .b-Distance-text {
-	-webkit-transform: rotate3d(0, 0, 1, -45deg) translate3d(-1em, 0.4em, 0);
+	text-align: right;
 }
 
 .b-Distance--right {
 	right: 2.125em;
-	-webkit-mask-image: linear-gradient(-45deg,#000, #000 50%, transparent 50%, transparent);
-	-webkit-transform: rotate3d(0, 0, 1, -45deg);
-}
-
-.b-Distance--right .b-Distance-text {
-	-webkit-transform: rotate3d(0, 0, 1, 45deg) translate3d(1.5em, 0.5em, 0);
+	text-align: left;
 }
 
 .b-Distance--center {
-	width: 3.25em;
-	height: 3.25em;
 	top: 1.75em;
 	left: 50%;
 	right: 50%;
-	margin-left: -1.5em;
-
-	-webkit-transform: rotate3d(0, 0, 1, 45deg);
-	-webkit-mask-image: linear-gradient(135deg,#000, #000 50%, transparent 50%, transparent);
-}
-
-.b-Distance--center .b-Distance-text {
-	width: 100%;
-	-webkit-transform: rotate3d(0, 0, 1, -45deg) translate3d(0, -0.5em, 0);
+	margin-left: -2em;
+	line-height: 3em;
 }
 
 .b-Heading {

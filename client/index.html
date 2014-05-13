@@ -21,6 +21,16 @@
 	<body>
 		<canvas class="b-Feed js-feed"></canvas>
 
+		<div class="b-Settings">
+			<label>
+				<select class="js-commModeSelect">
+					<option value="0">RC</option>
+					<option value="1">WiFi</option>
+					<option value="2">Autonomous</option>
+				</select>
+			</label>
+		</div>
+
 		<div class="b-Log js-log"></div>
 
 		<div class="b-Joystick js-joystick">
@@ -36,10 +46,26 @@
 			<div class="b-Heading-yaw js-headingYaw"></div>
 		</div>
 
+		<div class="b-Distance b-Distance--left">
+			<span class="b-Distance-text js-leftDistText"></span>
+			<svg enable-background="new 0 0 8 16" viewBox="0 0 8 16" class="b-Distance-triangle">
+				<polygon points="8,0 8,16 0,8" class="js-leftDistArrow"></polygon>
+			</svg>
+		</div>
 
-		<div class="b-Distance b-Distance--left js-leftDistArrow"><span class="b-Distance-text js-leftDistText"></span></div>
-		<div class="b-Distance b-Distance--center js-centerDistArrow"><span class="b-Distance-text js-centerDistText"></span></div>
-		<div class="b-Distance b-Distance--right js-rightDistArrow"><span class="b-Distance-text js-rightDistText"></span></div>
+		<div class="b-Distance b-Distance--center">
+			<span class="b-Distance-text js-centerDistText"></span>
+			<svg enable-background="new 0 0 16 8" viewBox="0 0 16 8" class="b-Distance-triangle">
+				<polygon points="8,0 0,8 16,8" class="js-centerDistArrow"></polygon>
+			</svg>
+		</div>
+
+		<div class="b-Distance b-Distance--right">
+			<span class="b-Distance-text js-rightDistText"></span>
+			<svg enable-background="new 0 0 8 16" viewBox="0 0 8 16" class="b-Distance-triangle">
+				<polygon points="0,0 8,8 0,16" class="js-rightDistArrow"></polygon>
+			</svg>
+		</div>
 
 		<div class="b-Hud">
 			<div class="b-Hud-item">Throttle: <span class="b-Hud-value js-throttleHUD"></span></div>
