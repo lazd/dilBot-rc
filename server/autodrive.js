@@ -25,16 +25,30 @@ AutoDrive.prototype.update = function(state) {
   var leftCollide = state.leftDist < constants.autonomy.collisionDist;
   var rightCollide = state.rightDist < constants.autonomy.collisionDist;
 
+  // if (this.mode === modes.turnTo) {
+  //   // Choose closest spin direction
+  //   // var diff = state.heading - this.targetHeading;
+
+  //   this.controller.setState(constants.rc.center, constants.rc.center + constants.autonomy.steer);
+  //   // Try right
+  //     // If heading hasn't changed in 1s, try left
+  //   // Try left
+  //     // If heading hasn't changed in 1s, try right
+
+  //   // If heading is within 5 deg of desired heading
+  //   if (Math.abs(this.targetHeading - state.heading) < 5) {
+  //     // Set mode to forward
+  //     this.mode = modes.go;
+  //   }
+  // }
   if (frontCollide || (leftCollide && rightCollide)) {
     // Both sensors detect a wall, we can't go forward
     // Turn around
-    if (this.mode != modes.turnAround) {
-      log('Turn around...');
-    }
-    this.mode = modes.turnAround;
-    this.controller.stop();
+    log('Turn around...');
+    rightCollide = true;
   }
-  else if (rightCollide) {
+
+  if (rightCollide) {
     // Turn left
     if (this.mode != modes.turnLeft) {
       log('Turn left...');
