@@ -29,7 +29,7 @@ controller.on('ready', function() {
   log('main: Robot is ready');
 
   // Switch mode to serial control once a connection is established
-  setMode(constants.mode.serial);
+  // setMode(constants.mode.serial);
 
   socketServer.io.sockets.emit('ready', {});
 });
@@ -92,7 +92,40 @@ socketServer.on('command', function(event) {
   }
 });
 
+var keypress = require('keypress');
+
+// Catch keypresses
+keypress(process.stdin);
+process.stdin.setRawMode(true);
+process.stdin.resume();
+process.stdin.on('keypress', function(chunk, key) {
+  if (!key) return;
+
+  if (key.ctrl && key.name === 'c') {
+    process.exit();
+  }
+  else if (key.name === 'escape') {
+    controller.sendCommand('ST');
+  }
+  else if (key.name === 'c') {
+    controller.sendCommand('CH');
+  }
+  else if (key.name === 's') {
+    setMode(constants.mode.serial);
+  }
+  else if (key.name === 'a') {
+    setMode(constants.mode.autonomous);
+  }
+  else if (key.name === 'r') {
+    setMode(constants.mode.rc);
+  }
+});
+
 function setMode(newMode) {
+  newMode = parseInt(newMode, 10);
+
+  log('main: Mode set to '+newMode);
+
   if (newMode === constants.mode.autonomous) {
     // Autonomous control requires serial
     controller.setMode(constants.mode.serial);
@@ -100,8 +133,6 @@ function setMode(newMode) {
   else {
     controller.setMode(newMode);
   }
-
-  log('main: Mode set to '+newMode);
 
   // Store mode
   mode = newMode;

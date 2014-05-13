@@ -2,7 +2,6 @@ var util = require('util');
 var EventEmitter = require('events').EventEmitter;
 var serialport = require('serialport');
 var SerialPort = serialport.SerialPort;
-var keypress = require('keypress');
 var log = require('./logger');
 var constants = require('./constants');
 
@@ -94,24 +93,6 @@ Controller.prototype.connect = function() {
       else if (type === 'log') {
         // Print log messages to the console
         log('device: '+message.message);
-      }
-    });
-
-    // Catch keypresses
-    keypress(process.stdin);
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on('keypress', function(chunk, key) {
-      if (!key) return;
-
-      if (key.ctrl && key.name === 'c') {
-        process.exit();
-      }
-      else if (key.name === 'escape') {
-        controller.sendCommand('ST');
-      }
-      else if (key.name === 'c') {
-        controller.sendCommand('CH');
       }
     });
   });
