@@ -1,7 +1,7 @@
 module.exports = {
   autonomy: {
-    collisionDist: 25,
-    speed: 110,
+    collisionDist: 50,
+    speed: 120,
     steer: 320
   },
   rc: {
