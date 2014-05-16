@@ -22,7 +22,8 @@ log.getTime = function(milliseconds, alwaysIncludeHours) {
   var minutes = Math.round(seconds / 60);
   var hours = Math.round(minutes / 60);
   seconds = seconds % 60;
-  
+  minutes = minutes % 60;
+
   var dateStr = '';
 
   if (hours || alwaysIncludeHours) {
@@ -30,7 +31,7 @@ log.getTime = function(milliseconds, alwaysIncludeHours) {
   }
 
   dateStr += zeroPad(minutes)+':'+zeroPad(seconds);
-  
+
   return dateStr;
 };
 
