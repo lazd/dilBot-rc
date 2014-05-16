@@ -7,6 +7,8 @@ var constants = require('./constants');
 
 var stateInterval;
 
+var HeadingFilter = require('./HeadingFilter');
+
 // Create a controller constructor that inherits from EventEmitter
 var Controller = function(device, options) {
   EventEmitter.call(this);
@@ -24,6 +26,9 @@ var Controller = function(device, options) {
 
   // Robot's current state
   this.robotState = {};
+
+  // A heading filter
+  this.filterHeading = HeadingFilter(0.35, 100);
 
   // Connect on the next tick so implementors can add listeners
   process.nextTick(this.connect.bind(this));
@@ -84,9 +89,11 @@ Controller.prototype.connect = function() {
       // Send state
       var type = message.type || 'data';
       delete message.type;
-      controller.emit(type, message);
 
       if (type === 'state') {
+        // Smooth heading measurements
+        message.heading = controller.filterHeading(message.heading);
+
         // @todo copy properties, don't overwrite
         controller.robotState = message;
       }
@@ -94,6 +101,8 @@ Controller.prototype.connect = function() {
         // Print log messages to the console
         log('device: '+message.message);
       }
+
+      controller.emit(type, message);
     });
   });
 };
