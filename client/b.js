@@ -171,7 +171,7 @@ var b;
     setHUD: function(state) {
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
-      b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v, ' + (state.isCharged ? 'charged' : 'charging');
+      b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v' + (state.batteryDead ? ' (dead)' : '');
 
       b.els.headingHUD.textContent = state.heading;
 
