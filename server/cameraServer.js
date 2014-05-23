@@ -50,26 +50,35 @@ module.exports = function(options) {
 
   // Interval based
   var readTimeout;
-  var camera = new cv.VideoCapture(device);
-  function getImage() {
-    clearTimeout(readTimeout);
-    camera.read(function(err, image) {
-      if (err) {
-        log('camServer: Error reading image from camera %s', err);
-        return;
-      }
-
-      // @todo check if resize is necessary
-      image.resize(resolution[0], resolution[1]);
-      var buffer = image.toBuffer().toString('base64');
-      broadcastImage(buffer);
-
-      // @todo calculate correct delay based on time last frame sent
-      readTimeout = setTimeout(getImage, 1000 / fps);
-    });
+  var camera;
+  try {
+    camera = new cv.VideoCapture(device);
+  }
+  catch (err) {
+    log('camServer: Failed to open camera: ', err);
   }
 
-  getImage();
+  if (camera) {
+    function getImage() {
+      clearTimeout(readTimeout);
+      camera.read(function(err, image) {
+        if (err) {
+          log('camServer: Error reading image from camera %s', err);
+          return;
+        }
+
+        // @todo check if resize is necessary
+        image.resize(resolution[0], resolution[1]);
+        var buffer = image.toBuffer().toString('base64');
+        broadcastImage(buffer);
+
+        // @todo calculate correct delay based on time last frame sent
+        readTimeout = setTimeout(getImage, 1000 / fps);
+      });
+    }
+
+    getImage();
+  }
 
   return io;
 };
