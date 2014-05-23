@@ -43,6 +43,7 @@ var b;
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.headingHUD = document.querySelector('.js-headingHUD');
+      b.els.distanceHUD = document.querySelector('.js-distanceHUD');
       b.els.commModeSelect = document.querySelector('.js-commModeSelect');
 
       b.els.headingYaw = document.querySelector('.js-headingYaw');
@@ -171,9 +172,10 @@ var b;
     setHUD: function(state) {
       b.state = state;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
-      b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) +'v' + (state.batteryDead ? ' (dead)' : '');
+      b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) + 'v' + (state.batteryDead ? ' (dead)' : '');
 
       b.els.headingHUD.textContent = state.heading;
+      b.els.distanceHUD.textContent = 'L: ' + state.leftEncPos + ' R: ' + state.rightEncPos;
 
       b.els.leftDistHUD.textContent = state.leftDist;
       b.els.centerDistHUD.textContent = state.centerDist;

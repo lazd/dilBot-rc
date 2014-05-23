@@ -1,4 +1,15 @@
 module.exports = {
+  encoders: {
+    // The number of ticks from the encoder per wheel revolution
+    ticksPerRevolution: 1200
+  },
+  dimensions: {
+    // The diameter of a wheel in meters
+    wheelDiameter: 0.12,
+
+    // The distance between the center of the wheels
+    axleWidth: 0.27
+  },
   autonomy: {
     collisionDist: 50,
     speed: 120,

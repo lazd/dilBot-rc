@@ -8,6 +8,7 @@ var constants = require('./constants');
 var stateInterval;
 
 var HeadingFilter = require('./HeadingFilter');
+var DR = require('./DeadReckoning');
 
 // Create a controller constructor that inherits from EventEmitter
 var Controller = function(device, options) {
@@ -29,6 +30,17 @@ var Controller = function(device, options) {
 
   // A heading filter
   this.filterHeading = HeadingFilter(0.35, 100);
+
+  this.dr = new DR({
+    // The number of ticks from the encoder per wheel revolution
+    ticksPerRevolution: constants.encoders.ticksPerRevolution,
+
+    // The diameter of a wheel in meters
+    wheelDiameter: constants.dimensions.wheelDiameter,
+
+    // The distance between the center of the wheels
+    axleWidth: constants.dimensions.axleWidth
+  });
 
   // Connect on the next tick so implementors can add listeners
   process.nextTick(this.connect.bind(this));
@@ -93,6 +105,10 @@ Controller.prototype.connect = function() {
       if (type === 'state') {
         // Smooth heading measurements
         message.heading = controller.filterHeading(message.heading);
+
+        // Update dead reckoning using compass heading
+        controller.dr.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
+        // console.log('x: %s\ty: %s\tθ: %s\tL: %s\tR: %s', controller.dr.position.x.toFixed(3), controller.dr.position.y.toFixed(3), controller.dr.position.heading.toFixed(3), message.leftTicks, message.rightTicks);
 
         // @todo copy properties, don't overwrite
         controller.robotState = message;
