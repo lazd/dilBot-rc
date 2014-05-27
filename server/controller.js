@@ -5,10 +5,8 @@ var SerialPort = serialport.SerialPort;
 var log = require('./logger');
 var constants = require('./constants');
 
-var stateInterval;
-
-var HeadingFilter = require('./HeadingFilter');
-var DR = require('./DeadReckoning');
+var HeadingFilter = require('./lib/HeadingFilter');
+var DeadReckoning = require('./lib/DeadReckoning');
 
 // Create a controller constructor that inherits from EventEmitter
 var Controller = function(device, options) {
@@ -29,9 +27,12 @@ var Controller = function(device, options) {
   this.robotState = {};
 
   // A heading filter
-  this.filterHeading = HeadingFilter(0.35, 100);
+  this.headingFilter = new HeadingFilter({
+    smoothFactor: 0.35, 
+    anomalyThreshold: 100
+  });
 
-  this.dr = new DR({
+  this.dr = new DeadReckoning({
     // The number of ticks from the encoder per wheel revolution
     ticksPerRevolution: constants.encoders.ticksPerRevolution,
 
@@ -69,8 +70,6 @@ Controller.prototype.connect = function() {
     log('controller: Error communicating over serial: %s', err);
 
     controller.emit('error', err);
-
-    clearInterval(stateInterval);
   });
 
   sp.on('open', function() {
@@ -104,10 +103,10 @@ Controller.prototype.connect = function() {
 
       if (type === 'state') {
         // Smooth heading measurements
-        message.heading = controller.filterHeading(message.heading);
+        message.heading = controller.headingFilter.update(message.heading);
 
         // Update dead reckoning using compass heading
-        controller.dr.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
+        message.position = controller.dr.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
         // console.log('x: %s\ty: %s\tθ: %s\tL: %s\tR: %s', controller.dr.position.x.toFixed(3), controller.dr.position.y.toFixed(3), controller.dr.position.heading.toFixed(3), message.leftTicks, message.rightTicks);
 
         // @todo copy properties, don't overwrite

@@ -43,4 +43,6 @@ DeadReckoning.prototype.update = function(leftTicks, rightTicks, heading) {
   // Store last tick location
   this.previousLeftTicks = leftTicks;
   this.previousRightTicks = rightTicks;
+
+  return this.position;
 };
