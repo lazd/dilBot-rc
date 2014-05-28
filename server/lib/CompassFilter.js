@@ -1,4 +1,8 @@
-var HeadingFilter = module.exports = function(options) {
+/**
+A low-pass compass filter
+Based on http://stackoverflow.com/a/6462517/1170723
+*/
+var CompassFilter = module.exports = function(options) {
   // The easing float that defines how smooth the movement will be (1 is no smoothing and 0 is never updating, my default is 0.5)
   this.smoothFactor = options.smoothFactor || 0.5;
 
@@ -8,7 +12,7 @@ var HeadingFilter = module.exports = function(options) {
   this.heading = 0.0;
 };
 
-HeadingFilter.prototype.update = function(newHeading) {
+CompassFilter.prototype.update = function(newHeading) {
   if (Math.abs(newHeading - this.heading) < 180) {
     if (Math.abs(newHeading - this.heading) > this.anomalyThreshold) {
       this.heading = newHeading;

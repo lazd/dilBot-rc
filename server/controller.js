@@ -5,8 +5,8 @@ var SerialPort = serialport.SerialPort;
 var log = require('./logger');
 var constants = require('./constants');
 
-var HeadingFilter = require('./lib/HeadingFilter');
-var DeadReckoning = require('./lib/DeadReckoning');
+var CompassFilter = require('./lib/CompassFilter');
+var DSDDeadReckoning = require('./lib/DSDDeadReckoning');
 
 // Create a controller constructor that inherits from EventEmitter
 var Controller = function(device, options) {
@@ -21,18 +21,18 @@ var Controller = function(device, options) {
   this.device = device;
 
   // Serial port
-  this.sp = null;
+  this.serialPort = null;
 
   // Robot's current state
   this.robotState = {};
 
   // A heading filter
-  this.headingFilter = new HeadingFilter({
+  this.compassFilter = new CompassFilter({
     smoothFactor: 0.35, 
     anomalyThreshold: 100
   });
 
-  this.dr = new DeadReckoning({
+  this.deadReckoning = new DSDDeadReckoning({
     // The number of ticks from the encoder per wheel revolution
     ticksPerRevolution: constants.encoders.ticksPerRevolution,
 
@@ -50,10 +50,10 @@ var Controller = function(device, options) {
 util.inherits(Controller, EventEmitter);
 
 Controller.prototype.connect = function() {
-  var controller = this;
+  var self = this;
 
   // Create SerialPort instance
-  var sp = this.sp = new SerialPort(this.device, {
+  var sp = this.serialPort = new SerialPort(this.device, {
     baudrate: 115200,
     parser: serialport.parsers.readline('\n')
   }, false);
@@ -62,27 +62,27 @@ Controller.prototype.connect = function() {
     if (err) {
       log('controller: Error connecting to serial: %s', err);
 
-      controller.emit('error', err);
+      self.emit('error', err);
     }
   });
 
   sp.on('error', function(err) {
     log('controller: Error communicating over serial: %s', err);
 
-    controller.emit('error', err);
+    self.emit('error', err);
   });
 
   sp.on('open', function() {
     log('controller: Serial connection opened');
 
-    controller.emit('log', { message: 'Serial connection opened' });
+    self.emit('log', { message: 'Serial connection opened' });
 
     sp.on('data', function(packet) {
       // Give raw data as packet
-      controller.emit('packet', packet);
+      self.emit('packet', packet);
 
       // Log raw data
-      if (controller.debug) {
+      if (self.debug) {
         log(packet);
       }
 
@@ -90,9 +90,9 @@ Controller.prototype.connect = function() {
         var message = JSON.parse(packet);
       }
       catch(err) {
-        if (controller.debug) {
+        if (self.debug) {
           log('controller: Discarding malformed message %s', packet)
-          controller.emit('error', new Error('Got invalid message: '+err));
+          self.emit('error', new Error('Got invalid message: '+err));
         }
         return;
       }
@@ -103,28 +103,28 @@ Controller.prototype.connect = function() {
 
       if (type === 'state') {
         // Smooth heading measurements
-        message.heading = controller.headingFilter.update(message.heading);
+        message.heading = self.compassFilter.update(message.heading);
 
         // Update dead reckoning using compass heading
-        message.position = controller.dr.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
+        message.position = self.deadReckoning.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
         // console.log('x: %s\ty: %s\tθ: %s\tL: %s\tR: %s', controller.dr.position.x.toFixed(3), controller.dr.position.y.toFixed(3), controller.dr.position.heading.toFixed(3), message.leftTicks, message.rightTicks);
 
         // @todo copy properties, don't overwrite
-        controller.robotState = message;
+        self.robotState = message;
       }
       else if (type === 'log') {
         // Print log messages to the console
         log('device: '+message.message);
       }
 
-      controller.emit(type, message);
+      self.emit(type, message);
     });
   });
 };
 
 Controller.prototype.sendCommand = function(command) {
   // @todo do nothing unless connected
-  this.sp.write(command);
+  this.serialPort.write(command);
 };
 
 Controller.prototype.stop = function() {

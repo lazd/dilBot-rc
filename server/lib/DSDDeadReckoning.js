@@ -1,3 +1,7 @@
+/**
+Differential steer drive dead reckoning
+Adapted from http://www.ridgesoft.com/articles/trackingposition/trackingposition.pdf
+*/
 var DeadReckoning = module.exports = function(options) {
   this.ticksPerRevolution = options.ticksPerRevolution;
   this.wheelDiameter = options.wheelDiameter;
