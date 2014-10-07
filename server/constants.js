@@ -8,7 +8,7 @@ module.exports = {
     wheelDiameter: 0.12,
 
     // The distance between the center of the wheels
-    axleWidth: 0.27
+    axleWidth: 0.325
   },
   autonomy: {
     collisionDist: 50,
