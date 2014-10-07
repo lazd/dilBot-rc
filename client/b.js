@@ -22,6 +22,8 @@ var b;
     state: null,
 
     init: function() {
+      b.lastCommandTime = 0;
+
       // Connect to sockets
       var socket = b.socket = io.connect();
       var feedSocket = b.feedSocket = io.connect('http://'+window.location.hostname+':'+b.config.imageFeedPort);
@@ -39,11 +41,12 @@ var b;
       });
 
       // Get elements
+      b.els.map = document.querySelector('.js-map');
       b.els.throttleHUD = document.querySelector('.js-throttleHUD');
       b.els.batteryHUD = document.querySelector('.js-batteryHUD');
       b.els.fpsHUD = document.querySelector('.js-fpsHUD');
       b.els.headingHUD = document.querySelector('.js-headingHUD');
-      b.els.distanceHUD = document.querySelector('.js-distanceHUD');
+      b.els.positionHUD = document.querySelector('.js-positionHUD');
       b.els.commModeSelect = document.querySelector('.js-commModeSelect');
 
       b.els.headingYaw = document.querySelector('.js-headingYaw');
@@ -62,6 +65,9 @@ var b;
 
       // Get the feed context
       b.feedCtx = b.els.feed.getContext('2d');
+
+      // Get the map context
+      b.radar = new Radar();
 
       // Set feed size
       b.setFeedSize();
@@ -174,8 +180,7 @@ var b;
       b.els.throttleHUD.textContent = b.getThrottleValue(state.leftPWM, state.leftMode) + ' : ' + b.getThrottleValue(state.rightPWM, state.rightMode);
       b.els.batteryHUD.textContent = (state.battery/VOLT).toFixed(2) + 'v' + (state.batteryDead ? ' (dead)' : '');
 
-      b.els.headingHUD.textContent = state.heading;
-      b.els.distanceHUD.textContent = 'L: ' + state.leftEncPos + ' R: ' + state.rightEncPos;
+      b.els.headingHUD.textContent = state.heading.toFixed(2);
 
       b.els.leftDistHUD.textContent = state.leftDist;
       b.els.centerDistHUD.textContent = state.centerDist;
@@ -198,6 +203,14 @@ var b;
       if (b.els.commModeSelect.value !== state.commMode) {
         b.els.commModeSelect.value = state.commMode;
       }
+
+      // Update map
+      b.els.positionHUD.textContent = state.position.x.toFixed(2) + ' , ' + state.position.y.toFixed(2);
+
+      var x = state.position.x * 500;
+      var y = state.position.y * 500;
+      b.radar.addPoint(x, y, 1);
+      b.radar.update(x, y, state.heading * Math.PI/180);
     },
 
     getDistanceFactor: function(value, min) {
@@ -295,13 +308,20 @@ var b;
     },
 
     sendState: function(state) {
+      // Don't send commands too fast
+      var time = new Date().getTime() - b.lastCommandTime;
+      if (time < 100) return;
+
       b.config.throttle = state.throttle;
       b.config.steering = state.steering;
+
 
       b.socket.emit('command', {
         command: 'setState',
         data: state
       });
+
+      b.lastCommandTime = new Date().getTime();
     },
 
     sendCommand: function(command, data) {
