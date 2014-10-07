@@ -1,35 +1,30 @@
+// Read in configuration
+var config = require('./config');
+
+// Read in command line arguments
+config.cameraDevice = process.argv[3] ? parseInt(process.argv[3], 10) : config.cameraDevice;
+config.serialDevice = process.argv[2] || config.serialDevice;
+
 var log = require('./logger');
 var constants = require('./constants');
 
 var Controller = require('./controller');
 var AutoDrive = require('./autodrive');
 
-var uiServer = require('./uiServer')({
-  port: 3000
-});
+var uiServer = require('./uiServer')(config.uiServer);
 
 var socketServer = require('./socketServer')(uiServer);
+var cameraServer = require('./cameraServer')(config.camera);
 
-var cameraServer = require('./cameraServer')({
-  fps: 10,
-  port: 3001,
-  device: process.argv[3] ? parseInt(process.argv[3], 10) : 1
-});
-
-var controller = new Controller(process.argv[2] || '/dev/ttyUSB1', {
-  debug: false
-});
+var controller = new Controller(config.controller);
 
 var autodrive = new AutoDrive(controller);
 
-// The bot will start in RC mode
-var mode = constants.mode.rc;
+// The bot's current mode of operation
+var mode = config.mode;
 
 controller.on('ready', function() {
   log('main: Robot is ready');
-
-  // Switch mode to serial control once a connection is established
-  // setMode(constants.mode.serial);
 
   socketServer.io.sockets.emit('ready', {});
 });

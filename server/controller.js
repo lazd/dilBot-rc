@@ -4,12 +4,13 @@ var serialport = require('serialport');
 var SerialPort = serialport.SerialPort;
 var log = require('./logger');
 var constants = require('./constants');
+var config = require('./config');
 
 var CompassFilter = require('./lib/CompassFilter');
 var DSDDeadReckoning = require('./lib/DSDDeadReckoning');
 
 // Create a controller constructor that inherits from EventEmitter
-var Controller = function(device, options) {
+var Controller = function(options) {
   EventEmitter.call(this);
 
   options = options || {};
@@ -18,7 +19,10 @@ var Controller = function(device, options) {
   this.debug = options.debug || false;
 
   // Serial device address
-  this.device = device;
+  this.device = options.device;
+
+  // Serial baud rate
+  this.baudRate = options.baudRate;
 
   // Serial port
   this.serialPort = null;
@@ -26,11 +30,11 @@ var Controller = function(device, options) {
   // Robot's current state
   this.robotState = {};
 
+  // Compass filtering mode
+  this.compassMode = typeof options.compassMode !== 'undefined' ? options.compassMode : constants.compass.raw;
+
   // A heading filter
-  this.compassFilter = new CompassFilter({
-    smoothFactor: 0.35, 
-    anomalyThreshold: 100
-  });
+  this.compassFilter = new CompassFilter(options.compassFilter);
 
   this.deadReckoning = new DSDDeadReckoning({
     // The number of ticks from the encoder per wheel revolution
@@ -54,7 +58,7 @@ Controller.prototype.connect = function() {
 
   // Create SerialPort instance
   var sp = this.serialPort = new SerialPort(this.device, {
-    baudrate: 115200,
+    baudrate: this.baudRate,
     parser: serialport.parsers.readline('\n')
   }, false);
 
@@ -102,12 +106,35 @@ Controller.prototype.connect = function() {
       delete message.type;
 
       if (type === 'state') {
-        // Smooth heading measurements
-        message.heading = self.compassFilter.update(message.heading);
+        if (this.compassMode === constants.compass.filtered) {
+          // Smooth heading measurements from magnetometer
+          message.heading = self.compassFilter.update(message.heading);
 
-        // Update dead reckoning using compass heading
-        message.position = self.deadReckoning.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
-        // console.log('x: %s\ty: %s\tθ: %s\tL: %s\tR: %s', controller.dr.position.x.toFixed(3), controller.dr.position.y.toFixed(3), controller.dr.position.heading.toFixed(3), message.leftTicks, message.rightTicks);
+          // Update dead reckoning using compass heading
+          message.position = self.deadReckoning.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
+        }
+        else if (this.compassMode === constants.compass.deadReckoning) {
+          // Update dead reckoning using compass heading using previously calculated heading
+          message.position = self.deadReckoning.update(message.leftTicks, message.rightTicks);
+
+          // Sending heading calculated from dead reckoning
+          message.heading = message.position.heading * 180 / Math.PI;
+
+          // Give a standard compass heading
+          if (message.heading < 0) {
+            message.heading += 360;
+          }
+        }
+        else {
+          // Use heading as provided
+          // Update dead reckoning using compass heading
+          message.position = self.deadReckoning.update(message.leftTicks, message.rightTicks, (message.heading * Math.PI) / 180);
+        }
+
+        if (self.debug) {
+          var headingMethodString = this.compassMode === constants.compass.filtered ? 'compass' : (this.compassMode === constants.compass.deadReckoning ? 'encoders' : 'raw');
+          log('controller: x: %s\ty: %s\tθ: %s\t via %s\t at %s', message.position.x.toFixed(3), message.position.y.toFixed(3), message.heading.toFixed(3), headingMethodString, new Date().getTime());
+        }
 
         // @todo copy properties, don't overwrite
         self.robotState = message;
@@ -159,7 +186,7 @@ Controller.prototype.setState = function(throttle, steer) {
 
 function scaleSpeed(speed) {
   // Scale 1000-2000uS to 0-255
-  var pwm = Math.abs(speed - constants.rc.center) * 10 / 12;
+  var pwm = Math.abs(speed - config.rc.center) * 10 / 12;
 
   // Set maximum limit 255
   pwm = Math.floor(Math.min(pwm, 255));
@@ -173,17 +200,17 @@ function scaleSpeed(speed) {
 */
 function processStick(throttle, steering) {
   // if speed input is within deadband set to 0
-  if (Math.abs(throttle - constants.rc.center) < constants.rc.deadband) {
-    throttle = constants.rc.center;
+  if (Math.abs(throttle - config.rc.center) < config.rc.deadband) {
+    throttle = config.rc.center;
   }
 
   // if steering input is within deadband set to 0
-  if (Math.abs(steering - constants.rc.center) < constants.rc.deadband) {
-    steering = constants.rc.center;
+  if (Math.abs(steering - config.rc.center) < config.rc.deadband) {
+    steering = config.rc.center;
   }
 
   // Mix speed and steering signals
-  steering = steering - constants.rc.center;
+  steering = steering - config.rc.center;
   var leftSpeed = throttle + steering;
   var rightSpeed = throttle - steering;
 
@@ -191,12 +218,12 @@ function processStick(throttle, steering) {
   var rightMode = constants.driveMode.reverse;
 
   // if left input is forward then set left mode to forward
-  if (leftSpeed > (constants.rc.center + constants.rc.deadband)) {
+  if (leftSpeed > (config.rc.center + config.rc.deadband)) {
     leftMode = constants.driveMode.forward;
   }
 
   // if right input is forward then set right mode to forward
-  if (rightSpeed > (constants.rc.center + constants.rc.deadband)) {
+  if (rightSpeed > (config.rc.center + config.rc.deadband)) {
     rightMode = constants.driveMode.forward;
   }
 

@@ -10,15 +10,10 @@ module.exports = {
     // The distance between the center of the wheels
     axleWidth: 0.325
   },
-  autonomy: {
-    collisionDist: 50,
-    speed: 120,
-    steer: 320
-  },
-  rc: {
-    range: 1000,
-    center: 1800,
-    deadband: 35
+  compass: {
+    raw: 0,
+    filtered: 1,
+    deadReckoning: 2
   },
   mode: {
     rc: 0,
@@ -26,8 +21,8 @@ module.exports = {
     autonomous: 2
   },
   driveMode: {
-    forward: 2,
+    reverse: 0,
     brake: 1,
-    reverse: 0
+    forward: 2
   }
 };

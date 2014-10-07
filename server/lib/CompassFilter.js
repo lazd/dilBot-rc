@@ -6,7 +6,7 @@ var CompassFilter = module.exports = function(options) {
   // The easing float that defines how smooth the movement will be (1 is no smoothing and 0 is never updating, my default is 0.5)
   this.smoothFactor = options.smoothFactor || 0.5;
 
-  // The threshold in which the distance is big enough to turn immediatly (0 is jump always, 360 is never jumping, my default is 30)
+  // The threshold in which the distance is big enough to turn immediately (0 is jump always, 360 is never jumping, my default is 30)
   this.anomalyThreshold = options.anomalyThreshold || 30.0;
 
   this.heading = 0.0;

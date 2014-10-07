@@ -1,7 +1,7 @@
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 var log = require('./logger');
-var constants = require('./constants');
+var config = require('./config');
 var Q = require('q');
 
 var modes = {
@@ -44,23 +44,23 @@ var AutoDrive = module.exports = function(controller) {
 util.inherits(AutoDrive, EventEmitter);
 
 AutoDrive.prototype.reverse = function() {
-  this.controller.setState(constants.rc.center - constants.autonomy.speed, constants.rc.center);
+  this.controller.setState(config.rc.center - config.autonomy.speed, config.rc.center);
 };
 
 AutoDrive.prototype.brake = function() {
-  this.controller.setState(constants.rc.center, constants.rc.center);
+  this.controller.setState(config.rc.center, config.rc.center);
 };
 
 AutoDrive.prototype.forward = function() {
-  this.controller.setState(constants.rc.center + constants.autonomy.speed, constants.rc.center);
+  this.controller.setState(config.rc.center + config.autonomy.speed, config.rc.center);
 };
 
 AutoDrive.prototype.turnLeft = function() {
-  this.controller.setState(constants.rc.center, constants.rc.center - constants.autonomy.steer);
+  this.controller.setState(config.rc.center, config.rc.center - config.autonomy.steer);
 };
 
 AutoDrive.prototype.turnRight = function() {
-  this.controller.setState(constants.rc.center, constants.rc.center + constants.autonomy.steer);
+  this.controller.setState(config.rc.center, config.rc.center + config.autonomy.steer);
 };
 
 AutoDrive.prototype.applyMode = function(mode) {
@@ -89,9 +89,9 @@ AutoDrive.prototype.getCollisions = function() {
   var state = this.state;
 
   // Test for impending collisions
-  var centerCollide = state.centerDist < constants.autonomy.collisionDist;
-  var leftCollide = state.leftDist < constants.autonomy.collisionDist;
-  var rightCollide = state.rightDist < constants.autonomy.collisionDist;
+  var centerCollide = state.centerDist < config.autonomy.collisionDist;
+  var leftCollide = state.leftDist < config.autonomy.collisionDist;
+  var rightCollide = state.rightDist < config.autonomy.collisionDist;
 
   return {
     leftCollide: leftCollide,
@@ -135,7 +135,7 @@ AutoDrive.prototype.backOut = function(cb) {
 AutoDrive.prototype.turnToClearPath = function() {
   log('Looking for clear path...');
 
-  var clearPathDist = constants.autonomy.collisionDist * 2;
+  var clearPathDist = config.autonomy.collisionDist * 2;
 
   var deferred = Q.defer();
 
