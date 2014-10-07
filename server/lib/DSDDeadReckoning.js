@@ -34,11 +34,11 @@ DeadReckoning.prototype.update = function(leftTicks, rightTicks, heading) {
   this.position.y += deltaY;
 
   // Use authoritative heading
-  if (typeof heading !== undefined) {
+  if (typeof heading !== 'undefined') {
     this.position.heading = heading;
   }
   else {
-    this.position.heading += deltaHeading;
+    this.position.heading -= deltaHeading;
   }
 
   // Stay within -2PI and 2PI
